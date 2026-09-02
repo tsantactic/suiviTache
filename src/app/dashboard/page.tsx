@@ -54,7 +54,11 @@ export default function DashboardPage() {
     const next = !p.is_notion_done;
     setProjects((prev) => prev.map((x) => x.id === p.id ? { ...x, is_notion_done: next, notion_done_at: next ? new Date().toISOString() : null } : x));
     const { error } = await supabase.from("projects").update({ is_notion_done: next, notion_done_at: next ? new Date().toISOString() : null }).eq("id", p.id);
-    if (error) { alert(error.message); fetchProjects(false); }
+    if (error) {
+      if (error.message.includes("is_notion_done")) alert("Colonne manquante: exécute supabase/migration-notion-done.sql dans Supabase SQL Editor puis recharge.");
+      else alert(error.message);
+      fetchProjects(false);
+    }
   };
 
   const deleteProject = async (id: string) => {
@@ -69,7 +73,7 @@ export default function DashboardPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Mes Projets</h1>
+          <h1 className="text-2xl font-bold dark:text-white">Mes Projets</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">Cliquez sur un projet pour voir ses tâches</p>
         </div>
         <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700">
@@ -110,7 +114,7 @@ export default function DashboardPage() {
             <div key={p.id} className={`bg-white dark:bg-slate-800 rounded-xl border p-5 hover:shadow-md transition-shadow flex flex-col ${p.is_notion_done ? "border-green-500 ring-1 ring-green-200" : "border-slate-200 dark:border-slate-700"}`}>
               <Link href={`/dashboard/projects/${p.id}`} className="flex-1">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-lg leading-tight hover:text-blue-600">{p.name}</h3>
+                  <h3 className="font-semibold text-lg dark:text-white leading-tight hover:text-blue-600">{p.name}</h3>
                   {p.is_notion_done && <span className="px-2 py-1 rounded-full text-xs font-bold bg-green-600 text-white whitespace-nowrap">✓ Done Notion</span>}
                 </div>
                 {p.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">{p.description}</p>}

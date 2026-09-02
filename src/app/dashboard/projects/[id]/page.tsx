@@ -63,15 +63,15 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
           }}
           ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
           rows={1}
-          className="flex-1 font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 dark:border-slate-700 focus:border-blue-400 focus:bg-white dark:bg-slate-800 rounded px-1 py-0.5 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words"
+          className="flex-1 font-medium text-sm dark:text-white bg-transparent border border-transparent hover:border-slate-200 dark:border-slate-700 focus:border-blue-400 focus:bg-white dark:bg-slate-800 rounded px-1 py-0.5 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words"
         />
       </div>
       {saving !== "idle" && <span className={`text-[10px] ${saving==="saving"?"text-amber-600":"text-green-600"}`}>{saving==="saving"?"Enregistrement...":"Enregistré"}</span>}
 
-      <div className="mt-2 space-y-1 text-xs">
-        <p><span className="text-slate-500">Début:</span> <span className="text-red-600 font-medium">{task.start_date ? new Date(task.start_date).toLocaleDateString("fr-FR") : new Date(task.created_at).toLocaleDateString("fr-FR")}</span></p>
-        <p><span className="text-slate-500">Création:</span> <span className="text-red-600 font-medium">{new Date(task.created_at).toLocaleDateString("fr-FR")}</span></p>
-        {task.status === "termine" && <p><span className="text-slate-500">Terminée:</span> <span className="text-red-600 font-bold">{new Date(task.updated_at).toLocaleDateString("fr-FR")}</span></p>}
+      <div className="mt-2 space-y-1 text-xs dark:text-slate-300">
+        <p><span className="text-slate-500 dark:text-slate-400">Début:</span> <span className="text-red-600 dark:text-red-400 font-medium">{task.start_date ? new Date(task.start_date).toLocaleDateString("fr-FR") : new Date(task.created_at).toLocaleDateString("fr-FR")}</span></p>
+        <p><span className="text-slate-500 dark:text-slate-400">Création:</span> <span className="text-red-600 dark:text-red-400 font-medium">{new Date(task.created_at).toLocaleDateString("fr-FR")}</span></p>
+        {task.status === "termine" && <p><span className="text-slate-500 dark:text-slate-400">Terminée:</span> <span className="text-red-600 dark:text-red-400 font-bold">{new Date(task.updated_at).toLocaleDateString("fr-FR")}</span></p>}
       </div>
 
       <textarea
@@ -89,7 +89,7 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
         ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
         placeholder="Note / commentaire..."
         rows={2}
-        className="mt-2 w-full text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words"
+        className="mt-2 w-full text-xs dark:text-white dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words"
       />
 
       <div className="mt-3 flex items-center justify-between">
@@ -207,10 +207,10 @@ export default function ProjectTasksPage() {
       <Link href="/dashboard" className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white">← Retour aux projets</Link>
       <div className="mt-2 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">{project.name}</h1>
+          <h1 className="text-2xl font-bold dark:text-white">{project.name}</h1>
           {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{project.description}</p>}
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
+        <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 dark:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
           + Nouvelle tâche
         </button>
       </div>
@@ -218,7 +218,7 @@ export default function ProjectTasksPage() {
       {showForm && (
         <form onSubmit={handleCreate} className="mt-6 bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold mb-3">Nouvelle tâche</h3>
-          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 rounded-lg px-3 py-2" />
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
           <div className="grid grid-cols-2 gap-3 mt-3">
             <div>
               <label className="text-sm font-medium">Statut</label>
