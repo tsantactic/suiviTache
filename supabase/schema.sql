@@ -15,6 +15,8 @@ create table if not exists public.projects (
   user_id uuid references public.profiles(id) on delete set null,
   name text not null,
   description text,
+  is_notion_done boolean default false,
+  notion_done_at timestamp with time zone,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
