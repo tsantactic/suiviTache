@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { TASK_STATUSES, TASK_ORDER, DEFAULT_TASK_STATUS, getStatusColor, getStatusLabel, getNextStatus, getPrevStatus, TaskStatus } from "@/lib/constants";
+import { TASK_STATUSES, TASK_ORDER, KANBAN_COL_BG, DEFAULT_TASK_STATUS, getStatusColor, getStatusLabel, getNextStatus, getPrevStatus, TaskStatus } from "@/lib/constants";
 import type { Project, Task } from "@/lib/types";
 
 function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
@@ -289,7 +289,7 @@ export default function ProjectTasksPage() {
           const colTasks = tasksByStatus(col);
           const colMeta = TASK_STATUSES.find((s) => s.value === col)!;
           return (
-            <div key={col} className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 flex flex-col min-h-[400px]">
+            <div key={col} className={`rounded-xl p-3 flex flex-col min-h-[400px] border ${KANBAN_COL_BG[col]}`}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-sm flex items-center gap-2">
                   <span className={`px-2 py-1 rounded-full text-xs ${colMeta.color}`}>{colMeta.label}</span>
