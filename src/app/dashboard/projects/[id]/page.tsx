@@ -66,10 +66,20 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
 
       <textarea
         value={note}
-        onChange={(e) => autoSaveNote(e.target.value)}
+        onChange={(e) => {
+          autoSaveNote(e.target.value);
+          e.target.style.height = "auto";
+          e.target.style.height = e.target.scrollHeight + "px";
+        }}
+        onInput={(e) => {
+          const t = e.target as HTMLTextAreaElement;
+          t.style.height = "auto";
+          t.style.height = t.scrollHeight + "px";
+        }}
+        ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
         placeholder="Note / commentaire..."
         rows={2}
-        className="mt-2 w-full text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+        className="mt-2 w-full text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words"
       />
 
       <div className="mt-3 flex items-center justify-between">
