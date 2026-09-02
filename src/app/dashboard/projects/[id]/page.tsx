@@ -121,6 +121,7 @@ export default function ProjectTasksPage() {
   const [note, setNote] = useState("");
   const [view, setView] = useState<"kanban"|"liste">("kanban");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [sortAsc, setSortAsc] = useState(true);
 
   const fetchData = async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -135,18 +136,26 @@ export default function ProjectTasksPage() {
 
   useEffect(() => { fetchData(true); }, [id]);
 
+  const sortedByNum = useMemo(() => {
+    const sorted = [...tasks].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const map = new Map(sorted.map((t,i)=>[t.id, i+1]));
+    return map;
+  }, [tasks]);
+
   const filtered = useMemo(() => {
     let r = tasks;
     if (search) r = r.filter((t) => t.title.toLowerCase().includes(search.toLowerCase()) || (t.note && t.note.toLowerCase().includes(search.toLowerCase())));
     if (filterStatus !== "all") r = r.filter((t) => t.status === filterStatus);
+    r = [...r].sort((a,b) => {
+      const na = sortedByNum.get(a.id) || 0;
+      const nb = sortedByNum.get(b.id) || 0;
+      return sortAsc ? na - nb : nb - na;
+    });
     return r;
-  }, [tasks, search, filterStatus]);
+  }, [tasks, search, filterStatus, sortAsc, sortedByNum]);
 
   const tasksByStatus = (s: TaskStatus) => filtered.filter((t) => t.status === s);
-  const taskNumber = (t: Task) => {
-    const sorted = [...tasks].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    return sorted.findIndex((x) => x.id === t.id) + 1;
-  };
+  const taskNumber = (t: Task) => sortedByNum.get(t.id) || 0;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,6 +243,7 @@ export default function ProjectTasksPage() {
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 rounded-lg px-3 py-2 bg-white" />
         <div className="flex gap-2">
+          <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-white border hover:bg-slate-50">Tri # {sortAsc ? "↑" : "↓"}</button>
           <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-white border"}`}>Kanban</button>
           <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-white border"}`}>Liste</button>
         </div>
