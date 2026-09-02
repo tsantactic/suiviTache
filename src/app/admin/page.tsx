@@ -145,7 +145,7 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
           <h1 className="font-bold text-amber-900">Accès réservé aux admins</h1>
           <p className="text-sm text-amber-800 mt-1">Votre compte n&apos;a pas le rôle admin. Pour vous promouvoir, exécutez dans Supabase SQL :</p>
           {/* eslint-disable-next-line react/no-unescaped-entities */}
-          <code className="block mt-3 bg-white dark:bg-slate-800 p-3 rounded border text-xs overflow-auto">update profiles set role=&apos;admin&apos; where email=&apos;VOTRE_EMAIL&apos;;</code>
+          <code className="block mt-3 bg-slate-100 dark:bg-slate-800 p-3 rounded border text-xs overflow-auto">update profiles set role=&apos;admin&apos; where email=&apos;VOTRE_EMAIL&apos;;</code>
         </div>
       </div>
     </div>
@@ -161,7 +161,7 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
         {message && <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg">{message}</div>}
 
         <div className="mt-6 grid gap-4">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
             <h3 className="font-semibold">Inviter une personne par email</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Envoie un email d&apos;invitation (lien pour définir son mot de passe).</p>
             <form onSubmit={inviteUser} className="mt-3 flex flex-col sm:flex-row gap-2">
@@ -171,7 +171,7 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
             </form>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
             <h3 className="font-semibold">Gestion des utilisateurs</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Admin peut modifier email, mot de passe, rôle et supprimer un utilisateur.</p>
             <div className="mt-4 overflow-x-auto">
@@ -190,7 +190,7 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
             <p className="text-xs text-slate-500 mt-2">Nécessite <code>SUPABASE_SERVICE_ROLE_KEY</code> dans Vercel Env (sinon 403). Ajoutez-la puis Redeploy.</p>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
             <h3 className="font-semibold">Exporter les données</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Télécharge tous les projets + tâches au format JSON (recommandé pour sauvegarde complète).</p>
             <div className="mt-4 flex gap-3">
@@ -199,7 +199,7 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
             <h3 className="font-semibold">Importer les données</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Restaure un fichier JSON précédemment exporté. Les données existantes avec même ID seront mises à jour (upsert).</p>
             <label className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700">

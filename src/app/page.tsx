@@ -22,7 +22,7 @@ export default function Home() {
         </p>
         <div className="mt-8 flex gap-4">
           <Link href="/register" className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700">Commencer gratuitement</Link>
-          <Link href="/login" className="px-6 py-3 bg-white dark:bg-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Se connecter</Link>
+          <Link href="/login" className="px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Se connecter</Link>
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl w-full">
           {[
@@ -30,7 +30,7 @@ export default function Home() {
             { t: "Tâches avec statuts", d: "À faire, En cours, À tester, Terminer" },
             { t: "Recherche & filtres", d: "Retrouvez instantanément vos tâches" },
           ].map((f) => (
-            <div key={f.t} className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div key={f.t} className="bg-slate-100 dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
               <h3 className="font-semibold dark:text-white">{f.t}</h3>
               <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{f.d}</p>
             </div>

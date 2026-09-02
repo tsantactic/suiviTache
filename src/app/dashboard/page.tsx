@@ -84,8 +84,8 @@ export default function DashboardPage() {
       {showForm && (
         <form onSubmit={createProject} className="mt-6 bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold mb-3">Créer un projet</h3>
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du projet (ex: Refonte site vitrine)" className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" className="mt-3 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" rows={2} />
+          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du projet (ex: Refonte site vitrine)" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" className="mt-3 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" rows={2} />
           <div className="mt-3 flex gap-2">
             <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       {loading ? (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1,2,3].map((i) => (
-            <div key={i} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 animate-pulse">
+            <div key={i} className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 animate-pulse">
               <div className="h-5 bg-slate-200 rounded w-3/4"></div>
               <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded w-full mt-3"></div>
               <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded w-1/2 mt-2"></div>
@@ -104,14 +104,14 @@ export default function DashboardPage() {
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <div className="mt-8 bg-white dark:bg-slate-800 border border-dashed border-slate-300 rounded-xl p-10 text-center">
+        <div className="mt-8 bg-slate-100 dark:bg-slate-800 border border-dashed border-slate-300 rounded-xl p-10 text-center">
           <p className="text-slate-600 dark:text-slate-300">Aucun projet pour le moment.</p>
           <p className="text-sm text-slate-500 mt-1">Créez votre premier projet pour commencer à ajouter des tâches.</p>
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((p) => (
-            <div key={p.id} className={`bg-white dark:bg-slate-800 rounded-xl border p-5 hover:shadow-md transition-shadow flex flex-col ${p.is_notion_done ? "border-green-500 ring-1 ring-green-200" : "border-slate-200 dark:border-slate-700"}`}>
+            <div key={p.id} className={`bg-slate-100 dark:bg-slate-800 rounded-xl border p-5 hover:shadow-md transition-shadow flex flex-col ${p.is_notion_done ? "border-green-500 ring-1 ring-green-200" : "border-slate-200 dark:border-slate-700"}`}>
               <Link href={`/dashboard/projects/${p.id}`} className="flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-lg dark:text-white leading-tight hover:text-blue-600">{p.name}</h3>
