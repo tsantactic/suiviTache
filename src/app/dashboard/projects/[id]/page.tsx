@@ -140,24 +140,37 @@ export default function ProjectTasksPage() {
             {search || filterStatus !== "all" ? <p className="text-sm mt-1">Essayez de modifier votre recherche ou filtre.</p> : <p className="text-sm mt-1">Cliquez sur “Nouvelle tâche” pour en créer une.</p>}
           </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {filtered.map((t) => (
-              <li key={t.id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{t.title}</p>
-                  <p className="text-xs text-slate-400">Créée le {new Date(t.created_at).toLocaleDateString("fr-FR")}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <select value={t.status} onChange={(e) => updateStatusQuick(t, e.target.value)} className={`text-xs font-medium px-2 py-1 rounded-full border-0 ${getStatusColor(t.status)}`}>
-                    {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                  <span className={`hidden sm:inline text-xs px-2.5 py-1 rounded-full font-medium ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span>
-                  <button onClick={() => startEdit(t)} className="text-xs px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Éditer</button>
-                  <button onClick={() => deleteTask(t.id)} className="text-xs px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg">Supprimer</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr className="text-left text-xs font-semibold text-slate-600">
+                  <th className="px-4 py-2 whitespace-nowrap">Tâche</th>
+                  <th className="px-4 py-2 whitespace-nowrap">Statut</th>
+                  <th className="px-4 py-2 whitespace-nowrap">Création</th>
+                  <th className="px-4 py-2 whitespace-nowrap">Terminée</th>
+                  <th className="px-4 py-2 whitespace-nowrap text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map((t) => (
+                  <tr key={t.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium whitespace-nowrap max-w-[200px] truncate">{t.title}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <select value={t.status} onChange={(e) => updateStatusQuick(t, e.target.value)} className={`text-xs font-medium px-2 py-1 rounded-full border-0 ${getStatusColor(t.status)}`}>
+                        {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-red-600 font-medium">{new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-red-600 font-medium">{t.status === "termine" ? new Date(t.updated_at).toLocaleDateString("fr-FR") : "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right flex gap-1 justify-end">
+                      <button onClick={() => startEdit(t)} className="text-xs px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Éditer</button>
+                      <button onClick={() => deleteTask(t.id)} className="text-xs px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg">Supprimer</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

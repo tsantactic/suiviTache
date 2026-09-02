@@ -8,15 +8,29 @@ export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
+  const [users, setUsers] = useState<any[]>([]);
+
+  const fetchUsers = async () => {
+    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    if (data) setUsers(data);
+  };
 
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setIsAdmin(false); return; }
       const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-      setIsAdmin(data?.role === "admin");
+      const admin = data?.role === "admin";
+      setIsAdmin(admin);
+      if (admin) fetchUsers();
     })();
   }, []);
+
+  const updateRole = async (id: string, role: string) => {
+    const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
+    if (error) setMessage("Erreur: " + error.message);
+    else { setMessage("Rôle mis à jour"); fetchUsers(); }
+  };
 
   const handleExport = async () => {
     setMessage("");
@@ -97,6 +111,25 @@ export default function AdminPage() {
         {message && <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg">{message}</div>}
 
         <div className="mt-6 grid gap-4">
+          <div className="bg-white p-6 rounded-xl border border-slate-200">
+            <h3 className="font-semibold">Gestion des utilisateurs</h3>
+            <p className="text-sm text-slate-600 mt-1">Changez le rôle d&apos;un utilisateur (user ↔ admin).</p>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr className="text-left text-xs text-slate-600"><th className="px-3 py-2">Email</th><th className="px-3 py-2">Rôle</th><th className="px-3 py-2">Créé</th><th className="px-3 py-2">Action</th></tr>
+                </thead>
+                <tbody className="divide-y">
+                  {users.map((u) => (
+                    <tr key={u.id}><td className="px-3 py-2">{u.email}</td><td className="px-3 py-2"><span className={`px-2 py-1 rounded-full text-xs ${u.role==='admin'?'bg-purple-100 text-purple-700':'bg-slate-100 text-slate-700'}`}>{u.role}</span></td><td className="px-3 py-2 text-xs text-slate-500">{new Date(u.created_at).toLocaleDateString("fr-FR")}</td><td className="px-3 py-2"><select value={u.role} onChange={(e) => updateRole(u.id, e.target.value)} className="border rounded px-2 py-1 text-xs"><option value="user">user</option><option value="admin">admin</option></select></td></tr>
+                  ))}
+                </tbody>
+              </table>
+              {users.length===0 && <p className="text-sm text-slate-500 mt-2">Aucun utilisateur.</p>}
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Si la mise à jour échoue, exécutez <code>supabase/admin-policies.sql</code> dans SQL Editor.</p>
+          </div>
+
           <div className="bg-white p-6 rounded-xl border border-slate-200">
             <h3 className="font-semibold">Exporter les données</h3>
             <p className="text-sm text-slate-600 mt-1">Télécharge tous les projets + tâches au format JSON (recommandé pour sauvegarde complète).</p>
