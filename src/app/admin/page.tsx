@@ -165,8 +165,8 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
             <h3 className="font-semibold">Inviter une personne par email</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Envoie un email d&apos;invitation (lien pour définir son mot de passe).</p>
             <form onSubmit={inviteUser} className="mt-3 flex flex-col sm:flex-row gap-2">
-              <input type="email" required value={inviteEmail} onChange={(e)=>setInviteEmail(e.target.value)} placeholder="invite@exemple.com" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
-              <select value={inviteRole} onChange={(e)=>setInviteRole(e.target.value)} className="border rounded-lg px-3 py-2 text-sm"><option value="user">user</option><option value="admin">admin</option></select>
+              <input type="email" required value={inviteEmail} onChange={(e)=>setInviteEmail(e.target.value)} placeholder="invite@exemple.com" className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm" />
+              <select value={inviteRole} onChange={(e)=>setInviteRole(e.target.value)} className="border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm"><option value="user">user</option><option value="admin">admin</option></select>
               <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Inviter</button>
             </form>
           </div>

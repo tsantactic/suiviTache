@@ -222,17 +222,17 @@ export default function ProjectTasksPage() {
           <div className="grid grid-cols-2 gap-3 mt-3">
             <div>
               <label className="text-sm font-medium">Statut</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2">
+              <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2">
                 {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
             <div>
               <label className="text-sm font-medium">Date début</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2" />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
             </div>
           </div>
           <label className="block mt-3 text-sm font-medium">Note / Commentaire</label>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2" />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
           <div className="mt-3 flex gap-2">
             <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
@@ -241,7 +241,7 @@ export default function ProjectTasksPage() {
       )}
 
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 rounded-lg px-3 py-2 bg-white dark:bg-slate-800" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 bg-white" />
         <div className="flex gap-2">
           <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border hover:bg-slate-50 dark:bg-slate-900">Tri # {sortAsc ? "↑" : "↓"}</button>
           <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-white dark:bg-slate-800 border"}`}>Kanban</button>
@@ -252,7 +252,7 @@ export default function ProjectTasksPage() {
       {view === "liste" ? (
         <div className="mt-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div className="p-3 flex flex-col sm:flex-row gap-3 border-b">
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm">
               <option value="all">Tous les statuts</option>
               {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>

@@ -84,8 +84,8 @@ export default function DashboardPage() {
       {showForm && (
         <form onSubmit={createProject} className="mt-6 bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold mb-3">Créer un projet</h3>
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du projet (ex: Refonte site vitrine)" className="w-full border border-slate-300 rounded-lg px-3 py-2" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" className="mt-3 w-full border border-slate-300 rounded-lg px-3 py-2" rows={2} />
+          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du projet (ex: Refonte site vitrine)" className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" className="mt-3 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" rows={2} />
           <div className="mt-3 flex gap-2">
             <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>

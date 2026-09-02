@@ -6,10 +6,10 @@ export const TASK_STATUSES = [
 ] as const;
 
 export const KANBAN_COL_BG: Record<string, string> = {
-  a_faire: "bg-orange-50 border-orange-200 dark:bg-slate-800 dark:border-orange-700",
-  en_cours: "bg-red-50 border-red-200 dark:bg-slate-800 dark:border-red-700",
-  a_tester: "bg-amber-50 border-amber-200 dark:bg-slate-800 dark:border-amber-700",
-  termine: "bg-green-50 border-green-200 dark:bg-slate-800 dark:border-green-700",
+  a_faire: "bg-orange-50 border-orange-300 dark:bg-orange-950/60 dark:border-orange-600",
+  en_cours: "bg-red-50 border-red-300 dark:bg-red-950/60 dark:border-red-600",
+  a_tester: "bg-amber-50 border-amber-300 dark:bg-amber-950/60 dark:border-amber-600",
+  termine: "bg-green-50 border-green-300 dark:bg-green-950/60 dark:border-green-600",
 };
 
 export type TaskStatus = typeof TASK_STATUSES[number]["value"];
