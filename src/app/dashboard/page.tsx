@@ -76,7 +76,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold dark:text-white">Mes Projets</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">Cliquez sur un projet pour voir ses tâches</p>
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700">
+        <button onClick={() => setShowForm((v) => !v)} className="bg-green-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-green-700">
           + Nouveau projet
         </button>
       </div>

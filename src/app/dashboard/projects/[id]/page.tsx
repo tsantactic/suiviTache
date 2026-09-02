@@ -210,7 +210,7 @@ export default function ProjectTasksPage() {
           <h1 className="text-2xl font-bold dark:text-white">{project.name}</h1>
           {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{project.description}</p>}
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 dark:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
+        <button onClick={() => setShowForm((v) => !v)} className="bg-green-600 dark:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
           + Nouvelle tâche
         </button>
       </div>
