@@ -289,14 +289,14 @@ export default function ProjectTasksPage() {
           const colTasks = tasksByStatus(col);
           const colMeta = TASK_STATUSES.find((s) => s.value === col)!;
           return (
-            <div key={col} className={`rounded-xl p-3 flex flex-col min-h-[400px] border ${KANBAN_COL_BG[col]}`}>
-              <div className="flex items-center justify-between mb-3">
+            <div key={col} className="rounded-xl flex flex-col min-h-[400px] border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div className={`flex items-center justify-between px-3 py-2 border-b ${KANBAN_COL_BG[col]}`}>
                 <h3 className="font-bold text-sm flex items-center gap-2">
                   <span className={`px-2 py-1 rounded-full text-xs border ${colMeta.color}`}>{colMeta.label}</span>
-                  <span className="text-slate-700 dark:text-slate-100 font-bold bg-white/70 dark:bg-slate-900/50 px-2 py-0.5 rounded-full text-xs">{colTasks.length}</span>
+                  <span className="text-slate-700 dark:text-slate-100 font-bold bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full text-xs shadow-sm">{colTasks.length}</span>
                 </h3>
               </div>
-              <div className="space-y-3 flex-1">
+              <div className="p-3 space-y-3 flex-1">
                 {colTasks.length === 0 ? (
                   <p className="text-sm font-medium text-slate-600 dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 rounded-lg py-6 text-center border border-dashed">Aucune tâche</p>
                 ) : colTasks.map((t) => (
