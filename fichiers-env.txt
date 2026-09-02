@@ -1,0 +1,41 @@
+# SuiviTache - Fichiers et Variables Env
+# Généré le 2026-09-02
+
+## Variables d'environnement (.env.local / Vercel Env)
+NEXT_PUBLIC_SUPABASE_URL=https://vpwiapbxofdmzphnuvxw.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_52oAVg4Ub1uac1fNeGpA9g_PDs2UjAO
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_52oAVg4Ub1uac1fNeGpA9g_PDs2UjAO
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2lhcGJ4b2ZkbXpwaG51dnh3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODMwOTk1NiwiZXhwIjoyMTAzODg1OTU2fQ.sr4tMDx2trXvigyYZ5928K2wmXE4FtktTp5XRnsVFTQ
+
+# À mettre dans Vercel > Settings > Environment Variables (Production + Preview) puis Redeploy
+# SUPABASE_SERVICE_ROLE_KEY est SECRET - ne pas exposer côté client (sans NEXT_PUBLIC_)
+
+## Fichiers importants
+src/app/page.tsx                          # Accueil
+src/app/(auth)/login/page.tsx             # Login
+src/app/(auth)/register/page.tsx          # Register
+src/app/dashboard/page.tsx                # Liste projets + compteurs + bouton Notion Done
+src/app/dashboard/projects/[id]/page.tsx  # Kanban 4 colonnes + Liste + tri #
+src/app/dashboard/settings/page.tsx       # Changer email + mdp (user & admin)
+src/app/dashboard/layout.tsx              # Layout dashboard
+src/app/admin/page.tsx                    # Admin: invitation, gestion users, export/import
+src/app/api/admin/users/[id]/route.ts    # API admin PATCH/DELETE users
+src/app/api/admin/users/invite/route.ts  # API invitation par email
+src/components/Navbar.tsx                 # Menu haut couleur + ThemeToggle
+src/components/ThemeToggle.tsx            # Toggle sombre/clair
+src/lib/constants.ts                      # Statuts + couleurs + KANBAN_COL_BG
+src/lib/types.ts                          # Types Project/Task/Profile
+src/lib/supabase/client.ts                # Client browser (fallback dummy)
+src/lib/supabase/server.ts                # Client server
+src/lib/supabase/admin.ts                 # Client service_role
+src/middleware.ts                         # Protection /dashboard + /admin
+supabase/schema.sql                       # Schéma complet (à exécuter 1x)
+supabase/migration-kanban.sql             # Migration Kanban (a_tester, note, start_date)
+supabase/migration-shared.sql             # Projets/tâches partagés (SET NULL, RLS all)
+supabase/migration-notion-done.sql        # Colonne is_notion_done
+supabase/admin-policies.sql               # Policy admin update profiles
+supabase/auto-admin.sql                   # Auto-admin par email
+scripts/create-admin.mjs                  # Script création admin
+GUIDE_PUSH.md                             # Guide push autonome
+.env.example                              # Exemple env
+.env.local                                # Env local (gitignore)
