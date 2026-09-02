@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Usage: node scripts/create-admin.mjs admin@suivitache.com MonPass123!
 // Nécessite SUPABASE_SERVICE_ROLE_KEY (Settings > API > service_role secret)
+import ws from 'ws';
+global.WebSocket = ws;
 import { createClient } from '@supabase/supabase-js';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
