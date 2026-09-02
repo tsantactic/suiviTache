@@ -50,11 +50,21 @@ export default function AdminPage() {
   };
 
   const deleteUser = async (id: string) => {
-    if (!confirm("Supprimer cet utilisateur définitivement ? Ses projets/tâches seront aussi supprimés.")) return;
+    if (!confirm("Supprimer cet utilisateur définitivement ? Ses projets/tâches resteront (partagés).")) return;
     const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
     const j = await res.json();
     if (!res.ok) setMessage("Erreur suppression: " + j.error);
     else { setMessage("Utilisateur supprimé"); fetchUsers(); }
+  };
+
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("user");
+  const inviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch("/api/admin/users/invite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: inviteEmail, role: inviteRole }) });
+    const j = await res.json();
+    if (!res.ok) setMessage("Erreur invitation: " + j.error);
+    else { setMessage(j.message); setInviteEmail(""); fetchUsers(); }
   };
 
   const handleExport = async () => {
@@ -151,6 +161,16 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
         {message && <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-800 text-sm p-3 rounded-lg">{message}</div>}
 
         <div className="mt-6 grid gap-4">
+          <div className="bg-white p-6 rounded-xl border border-slate-200">
+            <h3 className="font-semibold">Inviter une personne par email</h3>
+            <p className="text-sm text-slate-600 mt-1">Envoie un email d&apos;invitation (lien pour définir son mot de passe).</p>
+            <form onSubmit={inviteUser} className="mt-3 flex flex-col sm:flex-row gap-2">
+              <input type="email" required value={inviteEmail} onChange={(e)=>setInviteEmail(e.target.value)} placeholder="invite@exemple.com" className="flex-1 border rounded-lg px-3 py-2 text-sm" />
+              <select value={inviteRole} onChange={(e)=>setInviteRole(e.target.value)} className="border rounded-lg px-3 py-2 text-sm"><option value="user">user</option><option value="admin">admin</option></select>
+              <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">Inviter</button>
+            </form>
+          </div>
+
           <div className="bg-white p-6 rounded-xl border border-slate-200">
             <h3 className="font-semibold">Gestion des utilisateurs</h3>
             <p className="text-sm text-slate-600 mt-1">Admin peut modifier email, mot de passe, rôle et supprimer un utilisateur.</p>
