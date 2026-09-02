@@ -46,7 +46,7 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
+    <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
       <div className="flex items-start gap-2">
         <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 mt-1">#{num}</span>
         <textarea
@@ -63,7 +63,7 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
           }}
           ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
           rows={1}
-          className="flex-1 font-medium text-sm dark:text-white bg-transparent border border-transparent hover:border-slate-200 dark:border-slate-700 focus:border-blue-400 focus:bg-white dark:bg-slate-800 rounded px-1 py-0.5 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words"
+          className="flex-1 font-bold text-sm dark:text-white bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 focus:border-blue-400 rounded px-2 py-1 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words shadow-sm"
         />
       </div>
       {saving !== "idle" && <span className={`text-[10px] ${saving==="saving"?"text-amber-600":"text-green-600"}`}>{saving==="saving"?"Enregistrement...":"Enregistré"}</span>}
@@ -89,7 +89,7 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
         ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
         placeholder="Note / commentaire..."
         rows={2}
-        className="mt-2 w-full text-xs dark:text-white dark:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words"
+        className="mt-2 w-full text-xs bg-white dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words shadow-sm"
       />
 
       <div className="mt-3 flex items-center justify-between">
@@ -196,7 +196,7 @@ export default function ProjectTasksPage() {
       <div className="h-4 bg-slate-200 rounded w-32 mb-4"></div>
       <div className="h-8 bg-slate-200 rounded w-1/3"></div>
       <div className="mt-6 grid grid-cols-4 gap-4">
-        {[1,2,3,4].map((i) => <div key={i} className="h-64 bg-white dark:bg-slate-800 border rounded-xl"></div>)}
+        {[1,2,3,4].map((i) => <div key={i} className="h-64 bg-slate-100 dark:bg-slate-800 border rounded-xl"></div>)}
       </div>
     </div>
   );
@@ -216,23 +216,23 @@ export default function ProjectTasksPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-6 bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+        <form onSubmit={handleCreate} className="mt-6 bg-slate-100 dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold mb-3">Nouvelle tâche</h3>
-          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
           <div className="grid grid-cols-2 gap-3 mt-3">
             <div>
               <label className="text-sm font-medium">Statut</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2">
+              <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2">
                 {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
             <div>
               <label className="text-sm font-medium">Date début</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
             </div>
           </div>
           <label className="block mt-3 text-sm font-medium">Note / Commentaire</label>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
           <div className="mt-3 flex gap-2">
             <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
@@ -243,14 +243,14 @@ export default function ProjectTasksPage() {
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 bg-white" />
         <div className="flex gap-2">
-          <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border hover:bg-slate-50 dark:bg-slate-900">Tri # {sortAsc ? "↑" : "↓"}</button>
-          <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-white dark:bg-slate-800 border"}`}>Kanban</button>
-          <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-white dark:bg-slate-800 border"}`}>Liste</button>
+          <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 border hover:bg-slate-50 dark:bg-slate-900">Tri # {sortAsc ? "↑" : "↓"}</button>
+          <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-slate-100 dark:bg-slate-800 border"}`}>Kanban</button>
+          <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-slate-100 dark:bg-slate-800 border"}`}>Liste</button>
         </div>
       </div>
 
       {view === "liste" ? (
-        <div className="mt-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="mt-4 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div className="p-3 flex flex-col sm:flex-row gap-3 border-b">
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm">
               <option value="all">Tous les statuts</option>
