@@ -1,0 +1,55 @@
+"use client";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export default function SettingsPage() {
+  const supabase = createClient();
+  const [email, setEmail] = useState<string>("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+  }, []);
+
+  const handleChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr(""); setMsg("");
+    if (newPassword.length < 6) { setErr("Mot de passe min 6 caractères"); return; }
+    if (newPassword !== confirm) { setErr("Les mots de passe ne correspondent pas"); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) setErr(error.message);
+    else { setMsg("Mot de passe mis à jour avec succès"); setNewPassword(""); setConfirm(""); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="max-w-lg">
+      <h1 className="text-2xl font-bold">Paramètres</h1>
+      <p className="text-sm text-slate-600 mt-1">Gérez votre compte</p>
+
+      <div className="mt-6 bg-white p-6 rounded-xl border border-slate-200">
+        <h3 className="font-semibold">Compte</h3>
+        <p className="text-sm text-slate-600 mt-1">Connecté en tant que <span className="font-medium text-slate-900">{email || "—"}</span></p>
+      </div>
+
+      <form onSubmit={handleChange} className="mt-4 bg-white p-6 rounded-xl border border-slate-200">
+        <h3 className="font-semibold">Changer le mot de passe</h3>
+        <p className="text-xs text-slate-500 mt-1">La mise à jour est instantanée, pas besoin de se reconnecter.</p>
+        {err && <p className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">{err}</p>}
+        {msg && <p className="mt-3 text-sm text-green-700 bg-green-50 p-2 rounded">{msg}</p>}
+        <label className="block mt-4 text-sm font-medium">Nouveau mot de passe</label>
+        <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <label className="block mt-3 text-sm font-medium">Confirmer</label>
+        <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button type="submit" disabled={loading} className="mt-4 w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50">
+          {loading ? "Mise à jour..." : "Mettre à jour"}
+        </button>
+      </form>
+    </div>
+  );
+}

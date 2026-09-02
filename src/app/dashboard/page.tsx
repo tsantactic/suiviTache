@@ -12,30 +12,35 @@ export default function DashboardPage() {
   const [description, setDescription] = useState("");
   const supabase = createClient();
 
-  const fetchProjects = async () => {
-    setLoading(true);
+  const fetchProjects = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
     const { data, error } = await supabase.from("projects").select("*").order("created_at", { ascending: false });
     if (!error && data) setProjects(data as Project[]);
     setLoading(false);
   };
 
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => { fetchProjects(true); }, []);
 
   const createProject = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { error } = await supabase.from("projects").insert({ name, description: description || null, user_id: user.id });
-    if (!error) {
-      setName(""); setDescription(""); setShowForm(false);
-      fetchProjects();
-    } else alert(error.message);
+    // Optimistic: ajoute immédiatement sans loader
+    const tempId = Math.random().toString();
+    const optimistic: Project = { id: tempId, user_id: user.id, name, description: description || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    setProjects((prev) => [optimistic, ...prev]);
+    setName(""); setDescription(""); setShowForm(false);
+    const { error, data } = await supabase.from("projects").insert({ name: optimistic.name, description: optimistic.description, user_id: user.id }).select().single();
+    if (!error && data) setProjects((prev) => [data as Project, ...prev.filter((p) => p.id !== tempId)]);
+    else { setProjects((prev) => prev.filter((p) => p.id !== tempId)); if (error) alert(error.message); }
   };
 
   const deleteProject = async (id: string) => {
     if (!confirm("Supprimer ce projet et toutes ses tâches ?")) return;
-    await supabase.from("projects").delete().eq("id", id);
-    fetchProjects();
+    const prev = projects;
+    setProjects((p) => p.filter((x) => x.id !== id));
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+    if (error) { setProjects(prev); alert(error.message); }
   };
 
   return (
@@ -62,7 +67,17 @@ export default function DashboardPage() {
         </form>
       )}
 
-      {loading ? <p className="mt-8 text-slate-600">Chargement...</p> : projects.length === 0 ? (
+      {loading ? (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1,2,3].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-slate-200 p-5 animate-pulse">
+              <div className="h-5 bg-slate-200 rounded w-3/4"></div>
+              <div className="h-3 bg-slate-100 rounded w-full mt-3"></div>
+              <div className="h-3 bg-slate-100 rounded w-1/2 mt-2"></div>
+            </div>
+          ))}
+        </div>
+      ) : projects.length === 0 ? (
         <div className="mt-8 bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center">
           <p className="text-slate-600">Aucun projet pour le moment.</p>
           <p className="text-sm text-slate-500 mt-1">Créez votre premier projet pour commencer à ajouter des tâches.</p>

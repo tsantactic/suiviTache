@@ -35,6 +35,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4 text-sm">
           {email && <span className="text-slate-600 hidden sm:inline">{email} {role === "admin" && <span className="ml-1 bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">admin</span>}</span>}
           <Link href="/dashboard" className="text-slate-700 hover:text-slate-900">Projets</Link>
+          <Link href="/dashboard/settings" className="text-slate-700 hover:text-slate-900">Paramètres</Link>
           {role === "admin" && <Link href="/admin" className="text-purple-700 font-medium hover:text-purple-900">Admin</Link>}
           <button onClick={logout} className="bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800">
             Déconnexion

@@ -19,16 +19,18 @@ export default function ProjectTasksPage() {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<TaskStatus>(DEFAULT_TASK_STATUS);
 
-  const fetchData = async () => {
-    setLoading(true);
-    const { data: proj } = await supabase.from("projects").select("*").eq("id", id).single();
-    if (proj) setProject(proj as Project);
-    const { data: t } = await supabase.from("tasks").select("*").eq("project_id", id).order("created_at", { ascending: false });
-    if (t) setTasks(t as Task[]);
+  const fetchData = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    const [projRes, tasksRes] = await Promise.all([
+      supabase.from("projects").select("*").eq("id", id).single(),
+      supabase.from("tasks").select("*").eq("project_id", id).order("created_at", { ascending: false }),
+    ]);
+    if (projRes.data) setProject(projRes.data as Project);
+    if (tasksRes.data) setTasks(tasksRes.data as Task[]);
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [id]);
+  useEffect(() => { fetchData(true); }, [id]);
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
@@ -43,13 +45,18 @@ export default function ProjectTasksPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     if (editingTask) {
+      const prev = tasks;
+      setTasks((ts) => ts.map((x) => x.id === editingTask.id ? { ...x, title, status } : x));
+      setEditingTask(null); setTitle(""); setStatus(DEFAULT_TASK_STATUS); setShowForm(false);
       const { error } = await supabase.from("tasks").update({ title, status }).eq("id", editingTask.id);
-      if (!error) { setEditingTask(null); setTitle(""); setStatus(DEFAULT_TASK_STATUS); setShowForm(false); fetchData(); }
-      else alert(error.message);
+      if (error) { setTasks(prev); alert(error.message); } else fetchData(false);
     } else {
-      const { error } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title, status, description: null });
-      if (!error) { setTitle(""); setStatus(DEFAULT_TASK_STATUS); setShowForm(false); fetchData(); }
-      else alert(error.message);
+      const temp: Task = { id: "tmp_"+Date.now(), project_id: id, user_id: user.id, title, status, description: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      setTasks((ts) => [temp, ...ts]);
+      setTitle(""); setStatus(DEFAULT_TASK_STATUS); setShowForm(false);
+      const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title: temp.title, status: temp.status, description: null }).select().single();
+      if (!error && data) setTasks((ts) => [data as Task, ...ts.filter((x) => x.id !== temp.id)]);
+      else { setTasks((ts) => ts.filter((x) => x.id !== temp.id)); if (error) alert(error.message); }
     }
   };
 
@@ -62,16 +69,28 @@ export default function ProjectTasksPage() {
 
   const deleteTask = async (taskId: string) => {
     if (!confirm("Supprimer cette tâche ?")) return;
-    await supabase.from("tasks").delete().eq("id", taskId);
-    fetchData();
+    const prev = tasks;
+    setTasks((ts) => ts.filter((x) => x.id !== taskId));
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+    if (error) { setTasks(prev); alert(error.message); }
   };
 
   const updateStatusQuick = async (t: Task, newStatus: string) => {
-    await supabase.from("tasks").update({ status: newStatus }).eq("id", t.id);
-    fetchData();
+    setTasks((ts) => ts.map((x) => x.id === t.id ? { ...x, status: newStatus as TaskStatus } : x));
+    const { error } = await supabase.from("tasks").update({ status: newStatus }).eq("id", t.id);
+    if (error) setTasks((ts) => ts.map((x) => x.id === t.id ? { ...x, status: t.status } : x));
   };
 
-  if (loading) return <p>Chargement...</p>;
+  if (loading) return (
+    <div className="animate-pulse">
+      <div className="h-4 bg-slate-200 rounded w-32 mb-4"></div>
+      <div className="h-8 bg-slate-200 rounded w-1/3"></div>
+      <div className="mt-6 h-20 bg-white border border-slate-200 rounded-xl"></div>
+      <div className="mt-4 space-y-2">
+        {[1,2,3].map((i) => <div key={i} className="h-14 bg-white border border-slate-200 rounded-xl"></div>)}
+      </div>
+    </div>
+  );
   if (!project) return <p className="text-red-600">Projet introuvable.</p>;
 
   return (
