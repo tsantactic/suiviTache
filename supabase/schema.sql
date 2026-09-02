@@ -9,21 +9,21 @@ create table if not exists public.profiles (
   created_at timestamp with time zone default now()
 );
 
--- 2. Table projects
+-- 2. Table projects (partagé, SET NULL si user supprimé)
 create table if not exists public.projects (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references public.profiles(id) on delete cascade,
+  user_id uuid references public.profiles(id) on delete set null,
   name text not null,
   description text,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
 
--- 3. Table tasks
+-- 3. Table tasks (partagé, SET NULL si user supprimé)
 create table if not exists public.tasks (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
-  user_id uuid not null references public.profiles(id) on delete cascade,
+  user_id uuid references public.profiles(id) on delete set null,
   title text not null,
   description text,
   status text not null default 'a_faire' check (status in ('a_faire','en_cours','a_tester','termine')),
@@ -76,13 +76,15 @@ create policy "profiles self" on public.profiles for all using (auth.uid() = id)
 drop policy if exists "profiles read all auth" on public.profiles;
 create policy "profiles read all auth" on public.profiles for select using (auth.role() = 'authenticated');
 
--- Projects: owner only
+-- Projects: partagé pour tous les users authentifiés (tout le monde voit tout)
 drop policy if exists "projects owner all" on public.projects;
-create policy "projects owner all" on public.projects for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "projects all auth" on public.projects;
+create policy "projects all auth" on public.projects for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
--- Tasks: owner via project or direct user_id
+-- Tasks: partagé pour tous
 drop policy if exists "tasks owner all" on public.tasks;
-create policy "tasks owner all" on public.tasks for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "tasks all auth" on public.tasks;
+create policy "tasks all auth" on public.tasks for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 -- Pour autoriser l'admin à tout voir (optionnel, si tu veux que l'admin voie tout dans le dashboard)
 -- Décommenter si besoin :
