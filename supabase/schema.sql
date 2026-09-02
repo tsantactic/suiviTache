@@ -46,12 +46,15 @@ create trigger trg_projects_updated before update on public.projects for each ro
 drop trigger if exists trg_tasks_updated on public.tasks;
 create trigger trg_tasks_updated before update on public.tasks for each row execute function public.handle_updated_at();
 
--- Auto-create profile on signup
+-- Auto-create profile on signup (auto-admin si email listé)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, email, role) values (new.id, new.email, 'user')
-  on conflict (id) do nothing;
+  insert into public.profiles (id, email, role) values (
+    new.id, new.email,
+    case when new.email in ('admin@suivitache.com') then 'admin' else 'user' end
+  )
+  on conflict (id) do update set role = excluded.role;
   return new;
 end; $$;
 
