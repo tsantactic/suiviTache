@@ -46,7 +46,7 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
       <div className="flex items-start gap-2">
         <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 mt-1">#{num}</span>
         <textarea
@@ -63,7 +63,7 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
           }}
           ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
           rows={1}
-          className="flex-1 font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:bg-white rounded px-1 py-0.5 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words"
+          className="flex-1 font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 dark:border-slate-700 focus:border-blue-400 focus:bg-white dark:bg-slate-800 rounded px-1 py-0.5 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words"
         />
       </div>
       {saving !== "idle" && <span className={`text-[10px] ${saving==="saving"?"text-amber-600":"text-green-600"}`}>{saving==="saving"?"Enregistrement...":"Enregistré"}</span>}
@@ -89,13 +89,13 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
         ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
         placeholder="Note / commentaire..."
         rows={2}
-        className="mt-2 w-full text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words"
+        className="mt-2 w-full text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none overflow-hidden whitespace-pre-wrap break-words"
       />
 
       <div className="mt-3 flex items-center justify-between">
         <div className="flex gap-1">
           {getPrevStatus(task.status as TaskStatus) && (
-            <button onClick={() => onMove(task, "prev")} title="Précédent" className="px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 text-xs">‹</button>
+            <button onClick={() => onMove(task, "prev")} title="Précédent" className="px-2 py-1 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:bg-slate-900 text-xs">‹</button>
           )}
           {getNextStatus(task.status as TaskStatus) && (
             <button onClick={() => onMove(task, "next")} title="Suivant" className="px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">›</button>
@@ -196,7 +196,7 @@ export default function ProjectTasksPage() {
       <div className="h-4 bg-slate-200 rounded w-32 mb-4"></div>
       <div className="h-8 bg-slate-200 rounded w-1/3"></div>
       <div className="mt-6 grid grid-cols-4 gap-4">
-        {[1,2,3,4].map((i) => <div key={i} className="h-64 bg-white border rounded-xl"></div>)}
+        {[1,2,3,4].map((i) => <div key={i} className="h-64 bg-white dark:bg-slate-800 border rounded-xl"></div>)}
       </div>
     </div>
   );
@@ -204,11 +204,11 @@ export default function ProjectTasksPage() {
 
   return (
     <div>
-      <Link href="/dashboard" className="text-sm text-slate-600 hover:text-slate-900">← Retour aux projets</Link>
+      <Link href="/dashboard" className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white">← Retour aux projets</Link>
       <div className="mt-2 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{project.name}</h1>
-          {project.description && <p className="text-sm text-slate-600 mt-1">{project.description}</p>}
+          {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{project.description}</p>}
         </div>
         <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
           + Nouvelle tâche
@@ -216,7 +216,7 @@ export default function ProjectTasksPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-6 bg-white p-5 rounded-xl border border-slate-200">
+        <form onSubmit={handleCreate} className="mt-6 bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
           <h3 className="font-semibold mb-3">Nouvelle tâche</h3>
           <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 rounded-lg px-3 py-2" />
           <div className="grid grid-cols-2 gap-3 mt-3">
@@ -241,16 +241,16 @@ export default function ProjectTasksPage() {
       )}
 
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 rounded-lg px-3 py-2 bg-white" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 rounded-lg px-3 py-2 bg-white dark:bg-slate-800" />
         <div className="flex gap-2">
-          <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-white border hover:bg-slate-50">Tri # {sortAsc ? "↑" : "↓"}</button>
-          <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-white border"}`}>Kanban</button>
-          <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-white border"}`}>Liste</button>
+          <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border hover:bg-slate-50 dark:bg-slate-900">Tri # {sortAsc ? "↑" : "↓"}</button>
+          <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-white dark:bg-slate-800 border"}`}>Kanban</button>
+          <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-white dark:bg-slate-800 border"}`}>Liste</button>
         </div>
       </div>
 
       {view === "liste" ? (
-        <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="mt-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div className="p-3 flex flex-col sm:flex-row gap-3 border-b">
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 rounded-lg px-3 py-2 text-sm">
               <option value="all">Tous les statuts</option>
@@ -260,11 +260,11 @@ export default function ProjectTasksPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b"><tr className="text-left text-xs font-semibold text-slate-600"><th className="px-3 py-2 whitespace-nowrap">#</th><th className="px-3 py-2 whitespace-nowrap">Tâche</th><th className="px-3 py-2 whitespace-nowrap">Statut</th><th className="px-3 py-2 whitespace-nowrap">Début</th><th className="px-3 py-2 whitespace-nowrap">Création</th><th className="px-3 py-2 whitespace-nowrap">Terminée</th><th className="px-3 py-2 whitespace-nowrap">Note</th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
+              <thead className="bg-slate-50 dark:bg-slate-900 border-b"><tr className="text-left text-xs font-semibold text-slate-600 dark:text-slate-300"><th className="px-3 py-2 whitespace-nowrap">#</th><th className="px-3 py-2 whitespace-nowrap">Tâche</th><th className="px-3 py-2 whitespace-nowrap">Statut</th><th className="px-3 py-2 whitespace-nowrap">Début</th><th className="px-3 py-2 whitespace-nowrap">Création</th><th className="px-3 py-2 whitespace-nowrap">Terminée</th><th className="px-3 py-2 whitespace-nowrap">Note</th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
               <tbody className="divide-y">
                 {filtered.length===0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-500">Aucune tâche</td></tr> :
                 filtered.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50 align-top">
+                  <tr key={t.id} className="hover:bg-slate-50 dark:bg-slate-900 align-top">
                     <td className="px-3 py-2 font-bold whitespace-nowrap">#{taskNumber(t)}</td>
                     <td className="px-3 py-2 font-medium whitespace-pre-wrap break-words min-w-[160px] max-w-[260px]">{t.title}</td>
                     <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span></td>
@@ -289,7 +289,7 @@ export default function ProjectTasksPage() {
           const colTasks = tasksByStatus(col);
           const colMeta = TASK_STATUSES.find((s) => s.value === col)!;
           return (
-            <div key={col} className="bg-slate-100 rounded-xl p-3 flex flex-col min-h-[400px]">
+            <div key={col} className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 flex flex-col min-h-[400px]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-sm flex items-center gap-2">
                   <span className={`px-2 py-1 rounded-full text-xs ${colMeta.color}`}>{colMeta.label}</span>

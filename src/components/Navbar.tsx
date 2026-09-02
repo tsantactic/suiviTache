@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const [email, setEmail] = useState<string | null>(null);
@@ -27,16 +28,17 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-10 bg-white border-b border-slate-200">
+    <nav className="sticky top-0 z-10 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/dashboard" className="font-bold text-lg text-slate-900">
+        <Link href="/dashboard" className="font-bold text-lg text-slate-900 dark:text-white">
           📋 SuiviTache
         </Link>
         <div className="flex items-center gap-2 text-sm">
-          {email && <span className="text-slate-600 hidden sm:inline mr-1">{email} {role === "admin" && <span className="ml-1 bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">admin</span>}</span>}
-          <Link href="/dashboard" className="px-3 py-1.5 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700">📁 Projets</Link>
-          <Link href="/dashboard/settings" className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-medium hover:bg-amber-600">⚙️ Paramètres</Link>
-          {role === "admin" && <Link href="/admin" className="px-3 py-1.5 rounded-full bg-purple-600 text-white font-medium hover:bg-purple-700">👑 Admin</Link>}
+          {email && <span className="text-slate-600 dark:text-slate-300 hidden sm:inline mr-1">{email} {role === "admin" && <span className="ml-1 bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">admin</span>}</span>}
+          <ThemeToggle />
+          <Link href="/dashboard" className="px-3 py-1.5 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700">Projets</Link>
+          <Link href="/dashboard/settings" className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-medium hover:bg-amber-600">Paramètres</Link>
+          {role === "admin" && <Link href="/admin" className="px-3 py-1.5 rounded-full bg-purple-600 text-white font-medium hover:bg-purple-700">Admin</Link>}
           <button onClick={logout} className="px-3 py-1.5 rounded-full bg-red-600 text-white font-medium hover:bg-red-700">
             Déconnexion
           </button>
