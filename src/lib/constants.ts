@@ -1,8 +1,8 @@
 export const TASK_STATUSES = [
-  { value: "a_faire", label: "À faire", color: "bg-orange-100 text-orange-800 border-orange-200" },
-  { value: "en_cours", label: "En cours", color: "bg-red-100 text-red-800 border-red-200" },
-  { value: "a_tester", label: "À tester", color: "bg-amber-100 text-amber-800 border-amber-200" },
-  { value: "termine", label: "Terminer", color: "bg-green-100 text-green-800 border-green-200" },
+  { value: "a_faire", label: "À faire", color: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-800 dark:text-white dark:border-orange-600" },
+  { value: "en_cours", label: "En cours", color: "bg-red-100 text-red-800 border-red-200 dark:bg-red-700 dark:text-white dark:border-red-500" },
+  { value: "a_tester", label: "À tester", color: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-700 dark:text-white dark:border-amber-500" },
+  { value: "termine", label: "Terminer", color: "bg-green-100 text-green-800 border-green-200 dark:bg-green-700 dark:text-white dark:border-green-500" },
 ] as const;
 
 export const KANBAN_COL_BG: Record<string, string> = {
