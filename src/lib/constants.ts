@@ -1,6 +1,6 @@
 export const TASK_STATUSES = [
-  { value: "a_faire", label: "À faire", color: "bg-slate-500 text-white border-slate-600 dark:bg-slate-600 dark:text-white dark:border-slate-500" },
-  { value: "en_cours", label: "En cours", color: "bg-blue-600 text-white border-blue-700 dark:bg-blue-600 dark:text-white dark:border-blue-500" },
+  { value: "a_faire", label: "À faire", color: "bg-blue-600 text-white border-blue-700 dark:bg-blue-600 dark:text-white dark:border-blue-500" },
+  { value: "en_cours", label: "En cours", color: "bg-red-600 text-white border-red-700 dark:bg-red-600 dark:text-white dark:border-red-500" },
   { value: "a_tester", label: "À tester", color: "bg-violet-600 text-white border-violet-700 dark:bg-violet-600 dark:text-white dark:border-violet-500" },
   { value: "termine", label: "Terminer", color: "bg-green-600 text-white border-green-700 dark:bg-green-600 dark:text-white dark:border-green-500" },
 ] as const;
