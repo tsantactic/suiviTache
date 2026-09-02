@@ -3,11 +3,12 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { TASK_STATUSES, TASK_ORDER, DEFAULT_TASK_STATUS, getNextStatus, getPrevStatus, TaskStatus } from "@/lib/constants";
+import { TASK_STATUSES, TASK_ORDER, DEFAULT_TASK_STATUS, getStatusColor, getStatusLabel, getNextStatus, getPrevStatus, TaskStatus } from "@/lib/constants";
 import type { Project, Task } from "@/lib/types";
 
-function TaskCard({ task, onUpdate, onDelete, onMove }: {
+function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
   task: Task;
+  num: number;
   onUpdate: (id: string, patch: Partial<Task>) => void;
   onDelete: (id: string) => void;
   onMove: (t: Task, dir: "next"|"prev") => void;
@@ -46,12 +47,15 @@ function TaskCard({ task, onUpdate, onDelete, onMove }: {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-      <input
-        value={title}
-        onChange={(e) => autoSaveTitle(e.target.value)}
-        onBlur={() => { if (title.trim() && title !== task.title) onUpdate(task.id, { title }); }}
-        className="w-full font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:bg-white rounded px-1 py-0.5 outline-none"
-      />
+      <div className="flex items-start justify-between gap-2">
+        <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0">#{num}</span>
+        <input
+          value={title}
+          onChange={(e) => autoSaveTitle(e.target.value)}
+          onBlur={() => { if (title.trim() && title !== task.title) onUpdate(task.id, { title }); }}
+          className="flex-1 font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:bg-white rounded px-1 py-0.5 outline-none"
+        />
+      </div>
       {saving !== "idle" && <span className={`text-[10px] ${saving==="saving"?"text-amber-600":"text-green-600"}`}>{saving==="saving"?"Enregistrement...":"Enregistré"}</span>}
 
       <div className="mt-2 space-y-1 text-xs">
@@ -95,6 +99,8 @@ export default function ProjectTasksPage() {
   const [status, setStatus] = useState<TaskStatus>(DEFAULT_TASK_STATUS);
   const [startDate, setStartDate] = useState("");
   const [note, setNote] = useState("");
+  const [view, setView] = useState<"kanban"|"liste">("kanban");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const fetchData = async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -110,11 +116,17 @@ export default function ProjectTasksPage() {
   useEffect(() => { fetchData(true); }, [id]);
 
   const filtered = useMemo(() => {
-    if (!search) return tasks;
-    return tasks.filter((t) => t.title.toLowerCase().includes(search.toLowerCase()) || (t.note && t.note.toLowerCase().includes(search.toLowerCase())));
-  }, [tasks, search]);
+    let r = tasks;
+    if (search) r = r.filter((t) => t.title.toLowerCase().includes(search.toLowerCase()) || (t.note && t.note.toLowerCase().includes(search.toLowerCase())));
+    if (filterStatus !== "all") r = r.filter((t) => t.status === filterStatus);
+    return r;
+  }, [tasks, search, filterStatus]);
 
   const tasksByStatus = (s: TaskStatus) => filtered.filter((t) => t.status === s);
+  const taskNumber = (t: Task) => {
+    const sorted = [...tasks].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return sorted.findIndex((x) => x.id === t.id) + 1;
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,11 +211,50 @@ export default function ProjectTasksPage() {
         </form>
       )}
 
-      <div className="mt-6">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white" />
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 rounded-lg px-3 py-2 bg-white" />
+        <div className="flex gap-2">
+          <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-white border"}`}>Kanban</button>
+          <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-white border"}`}>Liste</button>
+        </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {view === "liste" ? (
+        <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="p-3 flex flex-col sm:flex-row gap-3 border-b">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 rounded-lg px-3 py-2 text-sm">
+              <option value="all">Tous les statuts</option>
+              {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+            <span className="text-sm text-slate-500 self-center">{filtered.length} tâches</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b"><tr className="text-left text-xs font-semibold text-slate-600"><th className="px-3 py-2 whitespace-nowrap">#</th><th className="px-3 py-2 whitespace-nowrap">Tâche</th><th className="px-3 py-2 whitespace-nowrap">Statut</th><th className="px-3 py-2 whitespace-nowrap">Début</th><th className="px-3 py-2 whitespace-nowrap">Création</th><th className="px-3 py-2 whitespace-nowrap">Terminée</th><th className="px-3 py-2 whitespace-nowrap">Note</th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
+              <tbody className="divide-y">
+                {filtered.length===0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-500">Aucune tâche</td></tr> :
+                filtered.map((t) => (
+                  <tr key={t.id} className="hover:bg-slate-50">
+                    <td className="px-3 py-2 font-bold">#{taskNumber(t)}</td>
+                    <td className="px-3 py-2 font-medium max-w-[180px] truncate">{t.title}</td>
+                    <td className="px-3 py-2"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span></td>
+                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.start_date ? new Date(t.start_date).toLocaleDateString("fr-FR") : new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.status==="termine"?new Date(t.updated_at).toLocaleDateString("fr-FR"):"—"}</td>
+                    <td className="px-3 py-2 max-w-[160px] truncate text-xs">{t.note||"—"}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-right flex gap-1 justify-end">
+                      {getPrevStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"prev")} className="px-2 py-1 border rounded text-xs">‹</button>}
+                      {getNextStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"next")} className="px-2 py-1 bg-blue-600 text-white rounded text-xs">›</button>}
+                      <button onClick={()=>deleteTask(t.id)} className="px-2 py-1 text-red-600 text-xs">Suppr.</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {TASK_ORDER.map((col) => {
           const colTasks = tasksByStatus(col);
           const colMeta = TASK_STATUSES.find((s) => s.value === col)!;
@@ -219,13 +270,14 @@ export default function ProjectTasksPage() {
                 {colTasks.length === 0 ? (
                   <p className="text-xs text-slate-400 text-center py-8">Aucune tâche</p>
                 ) : colTasks.map((t) => (
-                  <TaskCard key={t.id} task={t} onUpdate={handleInlineUpdate} onDelete={deleteTask} onMove={moveTask} />
+                  <TaskCard key={t.id} task={t} num={taskNumber(t)} onUpdate={handleInlineUpdate} onDelete={deleteTask} onMove={moveTask} />
                 ))}
               </div>
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
