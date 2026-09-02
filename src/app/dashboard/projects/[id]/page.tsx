@@ -1,10 +1,87 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { TASK_STATUSES, TASK_ORDER, DEFAULT_TASK_STATUS, getStatusColor, getNextStatus, getPrevStatus, TaskStatus } from "@/lib/constants";
+import { TASK_STATUSES, TASK_ORDER, DEFAULT_TASK_STATUS, getNextStatus, getPrevStatus, TaskStatus } from "@/lib/constants";
 import type { Project, Task } from "@/lib/types";
+
+function TaskCard({ task, onUpdate, onDelete, onMove }: {
+  task: Task;
+  onUpdate: (id: string, patch: Partial<Task>) => void;
+  onDelete: (id: string) => void;
+  onMove: (t: Task, dir: "next"|"prev") => void;
+}) {
+  const [title, setTitle] = useState(task.title);
+  const [note, setNote] = useState(task.note || task.description || "");
+  const titleRef = useRef<NodeJS.Timeout | null>(null);
+  const noteRef = useRef<NodeJS.Timeout | null>(null);
+  const [saving, setSaving] = useState<"idle"|"saving"|"saved">("idle");
+
+  useEffect(() => { setTitle(task.title); setNote(task.note || task.description || ""); }, [task.id, task.title, task.note]);
+
+  const autoSaveTitle = (v: string) => {
+    setTitle(v);
+    if (titleRef.current) clearTimeout(titleRef.current);
+    titleRef.current = setTimeout(async () => {
+      if (v.trim() && v !== task.title) {
+        setSaving("saving");
+        await onUpdate(task.id, { title: v });
+        setSaving("saved"); setTimeout(()=>setSaving("idle"), 800);
+      }
+    }, 600);
+  };
+
+  const autoSaveNote = (v: string) => {
+    setNote(v);
+    if (noteRef.current) clearTimeout(noteRef.current);
+    noteRef.current = setTimeout(async () => {
+      if (v !== (task.note || "")) {
+        setSaving("saving");
+        await onUpdate(task.id, { note: v, description: v } as any);
+        setSaving("saved"); setTimeout(()=>setSaving("idle"), 800);
+      }
+    }, 700);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+      <input
+        value={title}
+        onChange={(e) => autoSaveTitle(e.target.value)}
+        onBlur={() => { if (title.trim() && title !== task.title) onUpdate(task.id, { title }); }}
+        className="w-full font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:bg-white rounded px-1 py-0.5 outline-none"
+      />
+      {saving !== "idle" && <span className={`text-[10px] ${saving==="saving"?"text-amber-600":"text-green-600"}`}>{saving==="saving"?"Enregistrement...":"Enregistré"}</span>}
+
+      <div className="mt-2 space-y-1 text-xs">
+        <p><span className="text-slate-500">Début:</span> <span className="text-red-600 font-medium">{task.start_date ? new Date(task.start_date).toLocaleDateString("fr-FR") : new Date(task.created_at).toLocaleDateString("fr-FR")}</span></p>
+        <p><span className="text-slate-500">Création:</span> <span className="text-red-600 font-medium">{new Date(task.created_at).toLocaleDateString("fr-FR")}</span></p>
+        {task.status === "termine" && <p><span className="text-slate-500">Terminée:</span> <span className="text-red-600 font-bold">{new Date(task.updated_at).toLocaleDateString("fr-FR")}</span></p>}
+      </div>
+
+      <textarea
+        value={note}
+        onChange={(e) => autoSaveNote(e.target.value)}
+        placeholder="Note / commentaire..."
+        rows={2}
+        className="mt-2 w-full text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+      />
+
+      <div className="mt-3 flex items-center justify-between">
+        <div className="flex gap-1">
+          {getPrevStatus(task.status as TaskStatus) && (
+            <button onClick={() => onMove(task, "prev")} title="Précédent" className="px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 text-xs">‹</button>
+          )}
+          {getNextStatus(task.status as TaskStatus) && (
+            <button onClick={() => onMove(task, "next")} title="Suivant" className="px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">›</button>
+          )}
+        </div>
+        <button onClick={() => onDelete(task.id)} className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Suppr.</button>
+      </div>
+    </div>
+  );
+}
 
 export default function ProjectTasksPage() {
   const { id } = useParams() as { id: string };
@@ -14,7 +91,6 @@ export default function ProjectTasksPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<TaskStatus>(DEFAULT_TASK_STATUS);
   const [startDate, setStartDate] = useState("");
@@ -40,34 +116,22 @@ export default function ProjectTasksPage() {
 
   const tasksByStatus = (s: TaskStatus) => filtered.filter((t) => t.status === s);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const payload: any = { title, status, start_date: startDate || null, note: note || null, description: note || null };
-    if (editingTask) {
-      const prev = tasks;
-      setTasks((ts) => ts.map((x) => x.id === editingTask.id ? { ...x, ...payload } : x));
-      setEditingTask(null); setTitle(""); setStatus(DEFAULT_TASK_STATUS); setStartDate(""); setNote(""); setShowForm(false);
-      const { error } = await supabase.from("tasks").update(payload).eq("id", editingTask.id);
-      if (error) { setTasks(prev); alert(error.message); } else fetchData(false);
-    } else {
-      const temp: Task = { id: "tmp_"+Date.now(), project_id: id, user_id: user.id, title, status, note: note || null, start_date: startDate || null, description: note || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      setTasks((ts) => [temp, ...ts]);
-      setTitle(""); setStatus(DEFAULT_TASK_STATUS); setStartDate(""); setNote(""); setShowForm(false);
-      const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title, status, start_date: startDate || null, note: note || null, description: note || null }).select().single();
-      if (!error && data) setTasks((ts) => [data as Task, ...ts.filter((x) => x.id !== temp.id)]);
-      else { setTasks((ts) => ts.filter((x) => x.id !== temp.id)); if (error) alert(error.message); }
-    }
+    const temp: Task = { id: "tmp_"+Date.now(), project_id: id, user_id: user.id, title, status, note: note || null, start_date: startDate || null, description: note || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    setTasks((ts) => [temp, ...ts]);
+    setTitle(""); setStatus(DEFAULT_TASK_STATUS); setStartDate(""); setNote(""); setShowForm(false);
+    const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title: temp.title, status: temp.status, start_date: startDate || null, note: note || null, description: note || null }).select().single();
+    if (!error && data) setTasks((ts) => [data as Task, ...ts.filter((x) => x.id !== temp.id)]);
+    else { setTasks((ts) => ts.filter((x) => x.id !== temp.id)); if (error) alert(error.message); }
   };
 
-  const startEdit = (t: Task) => {
-    setEditingTask(t);
-    setTitle(t.title);
-    setStatus(t.status as TaskStatus);
-    setStartDate(t.start_date || "");
-    setNote(t.note || t.description || "");
-    setShowForm(true);
+  const handleInlineUpdate = async (taskId: string, patch: Partial<Task>) => {
+    setTasks((ts) => ts.map((x) => x.id === taskId ? { ...x, ...patch } : x));
+    const { error } = await supabase.from("tasks").update(patch as any).eq("id", taskId);
+    if (error) { alert(error.message); fetchData(false); }
   };
 
   const deleteTask = async (taskId: string) => {
@@ -83,7 +147,7 @@ export default function ProjectTasksPage() {
     if (!next) return;
     setTasks((ts) => ts.map((x) => x.id === t.id ? { ...x, status: next } : x));
     const { error } = await supabase.from("tasks").update({ status: next }).eq("id", t.id);
-    if (error) setTasks((ts) => ts.map((x) => x.id === t.id ? { ...x, status: t.status } : x));
+    if (error) { alert(error.message); setTasks((ts) => ts.map((x) => x.id === t.id ? { ...x, status: t.status } : x)); }
   };
 
   if (loading) return (
@@ -105,14 +169,14 @@ export default function ProjectTasksPage() {
           <h1 className="text-2xl font-bold">{project.name}</h1>
           {project.description && <p className="text-sm text-slate-600 mt-1">{project.description}</p>}
         </div>
-        <button onClick={() => { setEditingTask(null); setTitle(""); setStatus(DEFAULT_TASK_STATUS); setStartDate(""); setNote(""); setShowForm((v) => !v); }} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
+        <button onClick={() => setShowForm((v) => !v)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
           + Nouvelle tâche
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-6 bg-white p-5 rounded-xl border border-slate-200">
-          <h3 className="font-semibold mb-3">{editingTask ? "Modifier la tâche" : "Nouvelle tâche"}</h3>
+        <form onSubmit={handleCreate} className="mt-6 bg-white p-5 rounded-xl border border-slate-200">
+          <h3 className="font-semibold mb-3">Nouvelle tâche</h3>
           <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 rounded-lg px-3 py-2" />
           <div className="grid grid-cols-2 gap-3 mt-3">
             <div>
@@ -127,10 +191,10 @@ export default function ProjectTasksPage() {
             </div>
           </div>
           <label className="block mt-3 text-sm font-medium">Note / Commentaire</label>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails, commentaire..." rows={2} className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2" />
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2" />
           <div className="mt-3 flex gap-2">
-            <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">{editingTask ? "Mettre à jour" : "Créer"}</button>
-            <button type="button" onClick={() => { setShowForm(false); setEditingTask(null); }} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
+            <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
           </div>
         </form>
       )}
@@ -139,7 +203,6 @@ export default function ProjectTasksPage() {
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white" />
       </div>
 
-      {/* Kanban 4 colonnes */}
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {TASK_ORDER.map((col) => {
           const colTasks = tasksByStatus(col);
@@ -156,29 +219,7 @@ export default function ProjectTasksPage() {
                 {colTasks.length === 0 ? (
                   <p className="text-xs text-slate-400 text-center py-8">Aucune tâche</p>
                 ) : colTasks.map((t) => (
-                  <div key={t.id} className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-                    <p className="font-medium text-sm leading-tight">{t.title}</p>
-                    {t.note && <p className="text-xs text-slate-600 mt-1 line-clamp-2">{t.note}</p>}
-                    <div className="mt-2 space-y-1 text-xs">
-                      <p><span className="text-slate-500">Début:</span> <span className="text-red-600 font-medium">{t.start_date ? new Date(t.start_date).toLocaleDateString("fr-FR") : new Date(t.created_at).toLocaleDateString("fr-FR")}</span></p>
-                      <p><span className="text-slate-500">Création:</span> <span className="text-red-600 font-medium">{new Date(t.created_at).toLocaleDateString("fr-FR")}</span></p>
-                      {t.status === "termine" && <p><span className="text-slate-500">Terminée:</span> <span className="text-red-600 font-bold">{new Date(t.updated_at).toLocaleDateString("fr-FR")}</span></p>}
-                    </div>
-                    <div className="mt-3 flex items-center justify-between">
-                      <div className="flex gap-1">
-                        {getPrevStatus(t.status as TaskStatus) && (
-                          <button onClick={() => moveTask(t, "prev")} title="Déplacer vers précédent" className="px-2 py-1 border border-slate-200 rounded-lg hover:bg-slate-50 text-xs">‹</button>
-                        )}
-                        {getNextStatus(t.status as TaskStatus) && (
-                          <button onClick={() => moveTask(t, "next")} title="Déplacer vers suivant" className="px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">›</button>
-                        )}
-                      </div>
-                      <div className="flex gap-1">
-                        <button onClick={() => startEdit(t)} className="text-xs px-2 py-1 border rounded-lg hover:bg-slate-50">Éditer</button>
-                        <button onClick={() => deleteTask(t.id)} className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Suppr.</button>
-                      </div>
-                    </div>
-                  </div>
+                  <TaskCard key={t.id} task={t} onUpdate={handleInlineUpdate} onDelete={deleteTask} onMove={moveTask} />
                 ))}
               </div>
             </div>
