@@ -47,13 +47,23 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-      <div className="flex items-start justify-between gap-2">
-        <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0">#{num}</span>
-        <input
+      <div className="flex items-start gap-2">
+        <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 mt-1">#{num}</span>
+        <textarea
           value={title}
-          onChange={(e) => autoSaveTitle(e.target.value)}
-          onBlur={() => { if (title.trim() && title !== task.title) onUpdate(task.id, { title }); }}
-          className="flex-1 font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:bg-white rounded px-1 py-0.5 outline-none"
+          onChange={(e) => {
+            autoSaveTitle(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = e.target.scrollHeight + "px";
+          }}
+          onInput={(e) => {
+            const t = e.target as HTMLTextAreaElement;
+            t.style.height = "auto";
+            t.style.height = t.scrollHeight + "px";
+          }}
+          ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
+          rows={1}
+          className="flex-1 font-medium text-sm bg-transparent border border-transparent hover:border-slate-200 focus:border-blue-400 focus:bg-white rounded px-1 py-0.5 outline-none resize-none overflow-hidden whitespace-pre-wrap break-words"
         />
       </div>
       {saving !== "idle" && <span className={`text-[10px] ${saving==="saving"?"text-amber-600":"text-green-600"}`}>{saving==="saving"?"Enregistrement...":"Enregistré"}</span>}
@@ -244,14 +254,14 @@ export default function ProjectTasksPage() {
               <tbody className="divide-y">
                 {filtered.length===0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-500">Aucune tâche</td></tr> :
                 filtered.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50">
-                    <td className="px-3 py-2 font-bold">#{taskNumber(t)}</td>
-                    <td className="px-3 py-2 font-medium max-w-[180px] truncate">{t.title}</td>
-                    <td className="px-3 py-2"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span></td>
+                  <tr key={t.id} className="hover:bg-slate-50 align-top">
+                    <td className="px-3 py-2 font-bold whitespace-nowrap">#{taskNumber(t)}</td>
+                    <td className="px-3 py-2 font-medium whitespace-pre-wrap break-words min-w-[160px] max-w-[260px]">{t.title}</td>
+                    <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span></td>
                     <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.start_date ? new Date(t.start_date).toLocaleDateString("fr-FR") : new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
                     <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
                     <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.status==="termine"?new Date(t.updated_at).toLocaleDateString("fr-FR"):"—"}</td>
-                    <td className="px-3 py-2 max-w-[160px] truncate text-xs">{t.note||"—"}</td>
+                    <td className="px-3 py-2 whitespace-pre-wrap break-words min-w-[160px] max-w-[260px] text-xs">{t.note||"—"}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-right flex gap-1 justify-end">
                       {getPrevStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"prev")} className="px-2 py-1 border rounded text-xs">‹</button>}
                       {getNextStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"next")} className="px-2 py-1 bg-blue-600 text-white rounded text-xs">›</button>}
