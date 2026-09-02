@@ -27,9 +27,34 @@ export default function AdminPage() {
   }, []);
 
   const updateRole = async (id: string, role: string) => {
-    const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
-    if (error) setMessage("Erreur: " + error.message);
+    const res = await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role }) });
+    const j = await res.json();
+    if (!res.ok) setMessage("Erreur: " + j.error);
     else { setMessage("Rôle mis à jour"); fetchUsers(); }
+  };
+
+  const updateEmail = async (id: string, email: string) => {
+    if (!email.includes("@")) { setMessage("Email invalide"); return; }
+    const res = await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+    const j = await res.json();
+    if (!res.ok) setMessage("Erreur email: " + j.error);
+    else { setMessage("Email mis à jour"); fetchUsers(); }
+  };
+
+  const updatePassword = async (id: string, password: string) => {
+    if (password.length < 6) { setMessage("Mot de passe min 6 caractères"); return; }
+    const res = await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+    const j = await res.json();
+    if (!res.ok) setMessage("Erreur mdp: " + j.error);
+    else setMessage("Mot de passe mis à jour");
+  };
+
+  const deleteUser = async (id: string) => {
+    if (!confirm("Supprimer cet utilisateur définitivement ? Ses projets/tâches seront aussi supprimés.")) return;
+    const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+    const j = await res.json();
+    if (!res.ok) setMessage("Erreur suppression: " + j.error);
+    else { setMessage("Utilisateur supprimé"); fetchUsers(); }
   };
 
   const handleExport = async () => {
@@ -86,6 +111,21 @@ export default function AdminPage() {
     } finally { setImporting(false); }
   };
 
+function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole: any; onEmail: any; onPassword: any; onDelete: any }) {
+  const [email, setEmail] = useState(u.email);
+  const [pwd, setPwd] = useState("");
+  useEffect(()=>{ setEmail(u.email); }, [u.email]);
+  return (
+    <tr>
+      <td className="px-2 py-2 text-xs">{u.email}<br/><span className={`px-1.5 py-0.5 rounded-full text-[10px] ${u.role==='admin'?'bg-purple-100 text-purple-700':'bg-slate-100'}`}>{u.role}</span></td>
+      <td className="px-2 py-2"><select value={u.role} onChange={(e) => onRole(u.id, e.target.value)} className="border rounded px-1 py-1 text-xs"><option value="user">user</option><option value="admin">admin</option></select></td>
+      <td className="px-2 py-2"><div className="flex gap-1"><input value={email} onChange={(e)=>setEmail(e.target.value)} className="border rounded px-1 py-1 text-xs w-28" /><button onClick={()=>onEmail(u.id, email)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs">OK</button></div></td>
+      <td className="px-2 py-2"><div className="flex gap-1"><input type="password" placeholder="••••" value={pwd} onChange={(e)=>setPwd(e.target.value)} className="border rounded px-1 py-1 text-xs w-24" /><button onClick={()=>{onPassword(u.id,pwd); setPwd("");}} className="px-2 py-1 bg-slate-900 text-white rounded text-xs">OK</button></div></td>
+      <td className="px-2 py-2"><button onClick={()=>onDelete(u.id)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Supprimer</button></td>
+    </tr>
+  );
+}
+
   if (isAdmin === null) return <div className="min-h-screen bg-slate-50"><Navbar /><p className="p-8">Vérification...</p></div>;
   if (!isAdmin) return (
     <div className="min-h-screen bg-slate-50">
@@ -113,21 +153,21 @@ export default function AdminPage() {
         <div className="mt-6 grid gap-4">
           <div className="bg-white p-6 rounded-xl border border-slate-200">
             <h3 className="font-semibold">Gestion des utilisateurs</h3>
-            <p className="text-sm text-slate-600 mt-1">Changez le rôle d&apos;un utilisateur (user ↔ admin).</p>
+            <p className="text-sm text-slate-600 mt-1">Admin peut modifier email, mot de passe, rôle et supprimer un utilisateur.</p>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50">
-                  <tr className="text-left text-xs text-slate-600"><th className="px-3 py-2">Email</th><th className="px-3 py-2">Rôle</th><th className="px-3 py-2">Créé</th><th className="px-3 py-2">Action</th></tr>
+                  <tr className="text-left text-xs text-slate-600"><th className="px-2 py-2">Email</th><th className="px-2 py-2">Rôle</th><th className="px-2 py-2">Nouvel email</th><th className="px-2 py-2">Nouveau mdp</th><th className="px-2 py-2">Actions</th></tr>
                 </thead>
                 <tbody className="divide-y">
                   {users.map((u) => (
-                    <tr key={u.id}><td className="px-3 py-2">{u.email}</td><td className="px-3 py-2"><span className={`px-2 py-1 rounded-full text-xs ${u.role==='admin'?'bg-purple-100 text-purple-700':'bg-slate-100 text-slate-700'}`}>{u.role}</span></td><td className="px-3 py-2 text-xs text-slate-500">{new Date(u.created_at).toLocaleDateString("fr-FR")}</td><td className="px-3 py-2"><select value={u.role} onChange={(e) => updateRole(u.id, e.target.value)} className="border rounded px-2 py-1 text-xs"><option value="user">user</option><option value="admin">admin</option></select></td></tr>
+                    <UserRow key={u.id} u={u} onRole={updateRole} onEmail={updateEmail} onPassword={updatePassword} onDelete={deleteUser} />
                   ))}
                 </tbody>
               </table>
               {users.length===0 && <p className="text-sm text-slate-500 mt-2">Aucun utilisateur.</p>}
             </div>
-            <p className="text-xs text-slate-500 mt-2">Si la mise à jour échoue, exécutez <code>supabase/admin-policies.sql</code> dans SQL Editor.</p>
+            <p className="text-xs text-slate-500 mt-2">Nécessite <code>SUPABASE_SERVICE_ROLE_KEY</code> dans Vercel Env (sinon 403). Ajoutez-la puis Redeploy.</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl border border-slate-200">
