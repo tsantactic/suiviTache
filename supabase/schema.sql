@@ -26,7 +26,9 @@ create table if not exists public.tasks (
   user_id uuid not null references public.profiles(id) on delete cascade,
   title text not null,
   description text,
-  status text not null default 'a_faire' check (status in ('a_faire','en_cours','en_attente','termine')),
+  status text not null default 'a_faire' check (status in ('a_faire','en_cours','a_tester','termine')),
+  note text,
+  start_date date,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );

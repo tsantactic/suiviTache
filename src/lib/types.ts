@@ -22,6 +22,8 @@ export interface Task {
   user_id: string;
   title: string;
   description: string | null;
+  note: string | null;
+  start_date: string | null;
   status: TaskStatus;
   created_at: string;
   updated_at: string;
