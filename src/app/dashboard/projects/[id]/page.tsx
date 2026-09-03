@@ -122,80 +122,19 @@ export default function ProjectTasksPage() {
   const [view, setView] = useState<"kanban"|"liste">("kanban");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortAsc, setSortAsc] = useState(true);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [showImageMenu, setShowImageMenu] = useState(false);
-  const [showImagePreview, setShowImagePreview] = useState(false);
-  const [imgUploading, setImgUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const imageMenuRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async (showLoader = true) => {
     if (showLoader) setLoading(true);
-    const [projRes, tasksRes, imgRes] = await Promise.all([
+    const [projRes, tasksRes] = await Promise.all([
       supabase.from("projects").select("*").eq("id", id).single(),
       supabase.from("tasks").select("*").eq("project_id", id).order("created_at", { ascending: false }),
-      supabase.from("whiteboards").select("data").eq("project_id", id).single(),
     ]);
     if (projRes.data) setProject(projRes.data as Project);
     if (tasksRes.data) setTasks(tasksRes.data as Task[]);
-    if ((imgRes as any)?.data?.data?.image_url) setImageUrl((imgRes as any).data.data.image_url);
-    else setImageUrl(null);
     setLoading(false);
   };
 
   useEffect(() => { fetchData(true); }, [id]);
-
-  useEffect(() => {
-    const h = (e: MouseEvent) => { if (imageMenuRef.current && !imageMenuRef.current.contains(e.target as Node)) setShowImageMenu(false); };
-    if (showImageMenu) document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [showImageMenu]);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) { alert("Seules les images PNG/JPG sont autorisées"); return; }
-    setImgUploading(true); setShowImageMenu(false);
-    try {
-      const ext = file.name.split(".").pop() || "png";
-      const path = `${id}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("project-images").upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("project-images").getPublicUrl(path);
-      const url = pub.publicUrl;
-      const { error: dbErr } = await supabase.from("whiteboards").upsert({ project_id: id, data: { image_url: url }, updated_at: new Date().toISOString() }, { onConflict: "project_id" });
-      if (dbErr) throw dbErr;
-      setImageUrl(url);
-    } catch (err: any) {
-      alert("Erreur: " + (err.message || "upload échoué") + " - Vérifie bucket project-images (migration-whiteboard.sql)");
-    } finally {
-      setImgUploading(false);
-      e.target.value = "";
-    }
-  };
-
-  const handleImageRemove = async () => {
-    setShowImageMenu(false);
-    if (!imageUrl) return;
-    if (!confirm("Supprimer l'image ?")) return;
-    await supabase.from("whiteboards").delete().eq("project_id", id);
-    setImageUrl(null);
-  };
-
-  const [quickNote, setQuickNote] = useState("");
-  const notesForImage = useMemo(() => tasks.filter((t:any) => (t.etape || 'recap') === 'recap'), [tasks]);
-  const handleQuickAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickNote.trim()) return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const temp: any = { id: "tmp_"+Date.now(), project_id: id, user_id: user.id, title: quickNote.trim(), status: "a_faire", etape: "recap", note: null, description: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    setTasks((ts) => [temp, ...ts]);
-    setQuickNote("");
-    const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title: temp.title, status: "a_faire", etape: "recap" }).select().single();
-    if (!error && data) setTasks((ts) => [data as Task, ...ts.filter((x) => x.id !== temp.id)]);
-    else setTasks((ts) => ts.filter((x) => x.id !== temp.id));
-  };
 
   const sortedByNum = useMemo(() => {
     const sorted = [...tasks].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -271,22 +210,7 @@ export default function ProjectTasksPage() {
         <div className="mt-2 flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
-                <div className="relative" ref={imageMenuRef}>
-                  <button onClick={() => setShowImageMenu((v) => !v)} disabled={imgUploading} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-xs sm:text-sm font-medium hover:bg-purple-700 shrink-0">
-                    🖼️ Image {imgUploading ? "..." : "▾"}
-                  </button>
-                  {showImageMenu && (
-                    <div className="absolute left-0 top-full mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-20">
-                      {imageUrl && <button onClick={() => { setShowImagePreview(true); setShowImageMenu(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">👁️ Voir</button>}
-                      <button onClick={() => fileRef.current?.click()} className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white border-t border-slate-100 dark:border-slate-800">{imageUrl ? "➕ Remplacer" : "➕ Ajouter"} {imageUrl ? "" : "(1 seule)"}</button>
-                      {imageUrl && <button onClick={handleImageRemove} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-t border-slate-100 dark:border-slate-800">🗑️ Supprimer</button>}
-                    </div>
-                  )}
-                  <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageUpload} className="hidden" />
-                </div>
-              </div>
+              <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
               {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 break-words">{project.description}</p>}
             </div>
             <button onClick={() => setShowForm((v) => !v)} className="w-full sm:w-auto bg-green-600 dark:bg-green-700 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium hover:bg-green-700 shrink-0 touch-manipulation">
@@ -301,43 +225,6 @@ export default function ProjectTasksPage() {
               <button onClick={() => setView("liste")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="liste"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Liste</button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Image + Todos côte à côte */}
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col">
-          <h3 className="font-semibold dark:text-white text-sm mb-3">🖼️ Image du projet</h3>
-          {imageUrl ? (
-            <div className="flex-1 flex flex-col items-center">
-              <img src={imageUrl} onClick={() => setShowImagePreview(true)} alt="Image projet" className="w-full max-h-64 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-white cursor-pointer hover:opacity-90" title="Clique pour voir" />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Clique pour voir • Menu via bouton 🖼️ Image ci-dessus</p>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-900/30">
-              <p className="text-3xl">🖼️</p>
-              <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Aucune image</p>
-              <button onClick={() => fileRef.current?.click()} className="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">➕ Ajouter (1 seule)</button>
-            </div>
-          )}
-        </div>
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col">
-          <h3 className="font-semibold dark:text-white text-sm mb-2">📝 Todos / Notes <span className="font-normal text-xs text-slate-500">à côté de l&apos;image</span></h3>
-          <form onSubmit={handleQuickAdd} className="flex gap-2">
-            <input value={quickNote} onChange={(e)=>setQuickNote(e.target.value)} placeholder="Ajouter une note ou todo..." className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2 text-sm" />
-            <button type="submit" className="px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-lg text-sm shrink-0">Ajouter</button>
-          </form>
-          <div className="mt-3 space-y-2 max-h-64 overflow-y-auto pr-1">
-            {notesForImage.length===0 ? <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">Aucune note</p> :
-              notesForImage.slice(0,20).map((t) => (
-                <div key={t.id} className="flex items-start gap-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 p-2">
-                  <span className="text-xs font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded shrink-0">#{taskNumber(t)}</span>
-                  <p className="flex-1 text-sm dark:text-white break-words">{t.title}</p>
-                  <button onClick={()=>deleteTask(t.id)} className="text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded shrink-0">×</button>
-                </div>
-              ))}
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Étape: recap • {notesForImage.length} notes • Voir tout en Kanban/Liste ci-dessous</p>
         </div>
       </div>
 
@@ -456,15 +343,6 @@ export default function ProjectTasksPage() {
             </div>
           );
         })}
-        </div>
-      )}
-      {/* Modal Voir image - même page */}
-      {showImagePreview && imageUrl && (
-        <div onClick={() => setShowImagePreview(false)} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div onClick={(e) => e.stopPropagation()} className="relative max-w-5xl w-full">
-            <button onClick={() => setShowImagePreview(false)} className="absolute -top-10 right-0 text-white hover:text-slate-200 text-sm bg-black/50 px-3 py-1 rounded-full">✕ Fermer</button>
-            <img src={imageUrl} alt="Prévisualisation" className="w-full max-h-[85vh] object-contain rounded-lg bg-white" />
-          </div>
         </div>
       )}
     </div>
