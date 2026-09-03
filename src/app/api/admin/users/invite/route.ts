@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
   if (!email || !email.includes("@")) return NextResponse.json({ error: "Email invalide" }, { status: 400 });
 
   const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { data: { role } });
+  const redirectTo = process.env.NEXT_PUBLIC_SITE_URL || "https://suivitache.vercel.app";
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: { role } });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   // Assure le profil avec le bon rôle

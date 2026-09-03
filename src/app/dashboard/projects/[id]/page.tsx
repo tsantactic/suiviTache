@@ -204,15 +204,33 @@ export default function ProjectTasksPage() {
 
   return (
     <div>
-      <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">← Retour aux projets</Link>
-      <div className="mt-2 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
-          {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 break-words">{project.description}</p>}
+      {/* Sticky floating header */}
+      <div className="sticky top-[57px] z-10 -mx-3 sm:-mx-4 lg:mx-0 px-3 sm:px-4 lg:px-0 py-3 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">← Retour aux projets</Link>
+        <div className="mt-2 flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
+                <Link href={`/dashboard/projects/${id}/whiteboard`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-xs sm:text-sm font-medium hover:bg-purple-700 shrink-0">
+                  ✏️ Excalidraw
+                </Link>
+              </div>
+              {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 break-words">{project.description}</p>}
+            </div>
+            <button onClick={() => setShowForm((v) => !v)} className="w-full sm:w-auto bg-green-600 dark:bg-green-700 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium hover:bg-green-700 shrink-0 touch-manipulation">
+              + Nouvelle tâche
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              <button onClick={() => setSortAsc(v=>!v)} className="shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white hover:bg-slate-50">Tri # {sortAsc ? "↑" : "↓"}</button>
+              <button onClick={() => setView("kanban")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="kanban"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Kanban</button>
+              <button onClick={() => setView("liste")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="liste"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Liste</button>
+            </div>
+          </div>
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="w-full sm:w-auto bg-green-600 dark:bg-green-700 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium hover:bg-green-700 shrink-0 touch-manipulation">
-          + Nouvelle tâche
-        </button>
       </div>
 
       {showForm && (
@@ -239,15 +257,6 @@ export default function ProjectTasksPage() {
           </div>
         </form>
       )}
-
-      <div className="mt-6 flex flex-col gap-3">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm" />
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-          <button onClick={() => setSortAsc(v=>!v)} className="shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white hover:bg-slate-50">Tri # {sortAsc ? "↑" : "↓"}</button>
-          <button onClick={() => setView("kanban")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="kanban"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-slate-100 dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Kanban</button>
-          <button onClick={() => setView("liste")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="liste"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-slate-100 dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Liste</button>
-        </div>
-      </div>
 
       {view === "liste" ? (
         <>
