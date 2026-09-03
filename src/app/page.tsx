@@ -4,25 +4,25 @@ import ThemeToggle from "@/components/ThemeToggle";
 export default function Home() {
   return (
     <main className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
-      <nav className="max-w-6xl w-full mx-auto px-4 py-4 flex justify-between items-center">
-        <span className="font-bold text-xl dark:text-white">📋 SuiviTache</span>
-        <div className="flex gap-3 items-center">
+      <nav className="max-w-6xl w-full mx-auto px-4 py-4 flex justify-between items-center gap-2">
+        <span className="font-bold text-lg sm:text-xl dark:text-white shrink-0">📋 SuiviTache</span>
+        <div className="flex gap-2 sm:gap-3 items-center shrink-0">
           <ThemeToggle />
-          <Link href="/login" className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-slate-900">Connexion</Link>
-          <Link href="/register" className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800">Inscription</Link>
+          <Link href="/login" className="hidden sm:inline px-3 sm:px-4 py-2 text-sm sm:text-base text-slate-700 dark:text-slate-300 hover:text-slate-900">Connexion</Link>
+          <Link href="/register" className="px-3 sm:px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm sm:text-base whitespace-nowrap">Inscription</Link>
         </div>
       </nav>
-      <section className="flex-1 flex flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold max-w-3xl leading-tight dark:text-white">
+      <section className="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-0 text-center">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold max-w-3xl leading-tight dark:text-white">
           Gérez vos <span className="text-blue-600">projets</span> et vos tâches en toute simplicité
         </h1>
-        <p className="mt-4 text-slate-600 dark:text-slate-300 max-w-2xl">
+        <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl px-2">
           Créez un projet, cliquez dessus et retrouvez une vue liste de tâches avec statut, recherche et filtres.
           Authentification Supabase, export/import admin, prêt pour Vercel.
         </p>
-        <div className="mt-8 flex gap-4">
-          <Link href="/register" className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700">Commencer gratuitement</Link>
-          <Link href="/login" className="px-6 py-3 bg-slate-100 dark:bg-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Se connecter</Link>
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto px-4 sm:px-0">
+          <Link href="/register" className="w-full sm:w-auto text-center px-6 py-3.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700">Commencer gratuitement</Link>
+          <Link href="/login" className="w-full sm:w-auto text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700">Se connecter</Link>
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl w-full">
           {[

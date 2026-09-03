@@ -1,14 +1,14 @@
 export const TASK_STATUSES = [
   { value: "a_faire", label: "À faire", color: "bg-blue-600 text-white border-blue-700 dark:bg-blue-600 dark:text-white dark:border-blue-500" },
   { value: "en_cours", label: "En cours", color: "bg-red-600 text-white border-red-700 dark:bg-red-600 dark:text-white dark:border-red-500" },
-  { value: "a_tester", label: "À tester", color: "bg-violet-600 text-white border-violet-700 dark:bg-violet-600 dark:text-white dark:border-violet-500" },
+  { value: "a_tester", label: "À tester", color: "bg-red-600 text-white border-red-700 dark:bg-red-600 dark:text-white dark:border-red-500" },
   { value: "termine", label: "Terminer", color: "bg-green-600 text-white border-green-700 dark:bg-green-600 dark:text-white dark:border-green-500" },
 ] as const;
 
 export const KANBAN_COL_BG: Record<string, string> = {
   a_faire: "bg-blue-50 border-blue-300 dark:bg-blue-900 dark:border-blue-500 dark:shadow-[0_0_15px_rgba(59,130,246,0.3)]",
   en_cours: "bg-red-50 border-red-300 dark:bg-red-900 dark:border-red-500 dark:shadow-[0_0_15px_rgba(248,113,113,0.3)]",
-  a_tester: "bg-violet-50 border-violet-300 dark:bg-violet-900 dark:border-violet-500 dark:shadow-[0_0_15px_rgba(139,92,246,0.3)]",
+  a_tester: "bg-red-50 border-red-300 dark:bg-red-900 dark:border-red-500 dark:shadow-[0_0_15px_rgba(251,146,60,0.3)]",
   termine: "bg-green-50 border-green-300 dark:bg-green-900 dark:border-green-500 dark:shadow-[0_0_15px_rgba(74,222,128,0.3)]",
 };
 

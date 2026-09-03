@@ -204,101 +204,134 @@ export default function ProjectTasksPage() {
 
   return (
     <div>
-      <Link href="/dashboard" className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white">← Retour aux projets</Link>
-      <div className="mt-2 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold dark:text-white">{project.name}</h1>
-          {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{project.description}</p>}
+      <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">← Retour aux projets</Link>
+      <div className="mt-2 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
+          {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 break-words">{project.description}</p>}
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="bg-green-600 dark:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shrink-0">
+        <button onClick={() => setShowForm((v) => !v)} className="w-full sm:w-auto bg-green-600 dark:bg-green-700 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium hover:bg-green-700 shrink-0 touch-manipulation">
           + Nouvelle tâche
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-6 bg-slate-100 dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold mb-3">Nouvelle tâche</h3>
-          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
-          <div className="grid grid-cols-2 gap-3 mt-3">
+        <form onSubmit={handleCreate} className="mt-6 bg-slate-100 dark:bg-slate-800 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+          <h3 className="font-semibold dark:text-white mb-3">Nouvelle tâche</h3>
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
             <div>
-              <label className="text-sm font-medium">Statut</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2">
+              <label className="text-sm font-medium dark:text-slate-200">Statut</label>
+              <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm">
                 {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium">Date début</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
+              <label className="text-sm font-medium dark:text-slate-200">Date début</label>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm" />
             </div>
           </div>
-          <label className="block mt-3 text-sm font-medium">Note / Commentaire</label>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
-          <div className="mt-3 flex gap-2">
-            <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
+          <label className="block mt-3 text-sm font-medium dark:text-slate-200">Note / Commentaire</label>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Détails..." rows={2} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm" />
+          <div className="mt-3 flex flex-col-reverse sm:flex-row gap-2">
+            <button type="button" onClick={() => setShowForm(false)} className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 dark:border-slate-600 dark:text-white rounded-lg">Annuler</button>
+            <button type="submit" className="w-full sm:w-auto bg-slate-900 text-white px-4 py-2.5 rounded-lg">Créer</button>
           </div>
         </form>
       )}
 
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 bg-white" />
-        <div className="flex gap-2">
-          <button onClick={() => setSortAsc(v=>!v)} className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 border hover:bg-slate-50 dark:bg-slate-900">Tri # {sortAsc ? "↑" : "↓"}</button>
-          <button onClick={() => setView("kanban")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="kanban"?"bg-slate-900 text-white":"bg-slate-100 dark:bg-slate-800 border"}`}>Kanban</button>
-          <button onClick={() => setView("liste")} className={`px-4 py-2 rounded-lg text-sm font-medium ${view==="liste"?"bg-slate-900 text-white":"bg-slate-100 dark:bg-slate-800 border"}`}>Liste</button>
+      <div className="mt-6 flex flex-col gap-3">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher (nom ou note)..." className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 bg-white text-base sm:text-sm" />
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <button onClick={() => setSortAsc(v=>!v)} className="shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white hover:bg-slate-50">Tri # {sortAsc ? "↑" : "↓"}</button>
+          <button onClick={() => setView("kanban")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="kanban"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-slate-100 dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Kanban</button>
+          <button onClick={() => setView("liste")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="liste"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-slate-100 dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Liste</button>
         </div>
       </div>
 
       {view === "liste" ? (
-        <div className="mt-4 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="p-3 flex flex-col sm:flex-row gap-3 border-b">
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm">
-              <option value="all">Tous les statuts</option>
-              {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-            <span className="text-sm text-slate-500 self-center">{filtered.length} tâches</span>
+        <>
+          {/* Mobile cards */}
+          <div className="mt-4 lg:hidden space-y-3">
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex gap-2 items-center">
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2.5 text-sm">
+                <option value="all">Tous les statuts</option>
+                {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+              <span className="text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{filtered.length} tâches</span>
+            </div>
+            {filtered.length===0 ? <p className="text-center text-slate-500 dark:text-slate-400 py-8">Aucune tâche</p> :
+            filtered.map((t) => (
+              <div key={t.id} className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-bold text-sm dark:text-white break-words flex-1">#{taskNumber(t)} {t.title}</p>
+                  <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span>
+                </div>
+                {t.note && <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 break-words bg-white dark:bg-slate-700 rounded-lg p-2 border border-slate-200 dark:border-slate-600">{t.note}</p>}
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>Début: <b className="text-red-600 dark:text-red-400">{t.start_date ? new Date(t.start_date).toLocaleDateString("fr-FR") : new Date(t.created_at).toLocaleDateString("fr-FR")}</b></span>
+                  <span>Création: <b className="text-red-600 dark:text-red-400">{new Date(t.created_at).toLocaleDateString("fr-FR")}</b></span>
+                  {t.status==="termine" && <span>Terminée: <b className="text-red-600 dark:text-red-400">{new Date(t.updated_at).toLocaleDateString("fr-FR")}</b></span>}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  {getPrevStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"prev")} className="flex-1 py-2 border border-slate-300 dark:border-slate-600 dark:text-white rounded-lg text-sm">‹ Précédent</button>}
+                  {getNextStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"next")} className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm">Suivant ›</button>}
+                  <button onClick={()=>deleteTask(t.id)} className="px-3 py-2 text-red-600 text-sm">Suppr.</button>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-900 border-b"><tr className="text-left text-xs font-semibold text-slate-600 dark:text-slate-300"><th className="px-3 py-2 whitespace-nowrap">#</th><th className="px-3 py-2 whitespace-nowrap">Tâche</th><th className="px-3 py-2 whitespace-nowrap">Statut</th><th className="px-3 py-2 whitespace-nowrap">Début</th><th className="px-3 py-2 whitespace-nowrap">Création</th><th className="px-3 py-2 whitespace-nowrap">Terminée</th><th className="px-3 py-2 whitespace-nowrap">Note</th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
-              <tbody className="divide-y">
-                {filtered.length===0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-500">Aucune tâche</td></tr> :
-                filtered.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50 dark:bg-slate-900 align-top">
-                    <td className="px-3 py-2 font-bold whitespace-nowrap">#{taskNumber(t)}</td>
-                    <td className="px-3 py-2 font-medium whitespace-pre-wrap break-words min-w-[160px] max-w-[260px]">{t.title}</td>
-                    <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span></td>
-                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.start_date ? new Date(t.start_date).toLocaleDateString("fr-FR") : new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
-                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
-                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.status==="termine"?new Date(t.updated_at).toLocaleDateString("fr-FR"):"—"}</td>
-                    <td className="px-3 py-2 whitespace-pre-wrap break-words min-w-[160px] max-w-[260px] text-xs">{t.note||"—"}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-right flex gap-1 justify-end">
-                      {getPrevStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"prev")} className="px-2 py-1 border rounded text-xs">‹</button>}
-                      {getNextStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"next")} className="px-2 py-1 bg-blue-600 text-white rounded text-xs">›</button>}
-                      <button onClick={()=>deleteTask(t.id)} className="px-2 py-1 text-red-600 text-xs">Suppr.</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Desktop table */}
+          <div className="mt-4 hidden lg:block bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="p-3 flex gap-3 border-b border-slate-200 dark:border-slate-700">
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm">
+                <option value="all">Tous les statuts</option>
+                {TASK_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+              <span className="text-sm text-slate-500 dark:text-slate-400 self-center">{filtered.length} tâches</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-900 border-b"><tr className="text-left text-xs font-semibold text-slate-600 dark:text-slate-300"><th className="px-3 py-2 whitespace-nowrap">#</th><th className="px-3 py-2 whitespace-nowrap">Tâche</th><th className="px-3 py-2 whitespace-nowrap">Statut</th><th className="px-3 py-2 whitespace-nowrap">Début</th><th className="px-3 py-2 whitespace-nowrap">Création</th><th className="px-3 py-2 whitespace-nowrap">Terminée</th><th className="px-3 py-2 whitespace-nowrap">Note</th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                  {filtered.length===0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-500">Aucune tâche</td></tr> :
+                  filtered.map((t) => (
+                    <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 align-top">
+                      <td className="px-3 py-2 font-bold whitespace-nowrap">#{taskNumber(t)}</td>
+                      <td className="px-3 py-2 font-medium whitespace-pre-wrap break-words min-w-[160px] max-w-[260px]">{t.title}</td>
+                      <td className="px-3 py-2 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(t.status)}`}>{getStatusLabel(t.status)}</span></td>
+                      <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.start_date ? new Date(t.start_date).toLocaleDateString("fr-FR") : new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
+                      <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{new Date(t.created_at).toLocaleDateString("fr-FR")}</td>
+                      <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">{t.status==="termine"?new Date(t.updated_at).toLocaleDateString("fr-FR"):"—"}</td>
+                      <td className="px-3 py-2 whitespace-pre-wrap break-words min-w-[160px] max-w-[260px] text-xs">{t.note||"—"}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-right flex gap-1 justify-end">
+                        {getPrevStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"prev")} className="px-2 py-1 border border-slate-300 dark:border-slate-600 dark:text-white rounded text-xs">‹</button>}
+                        {getNextStatus(t.status as TaskStatus) && <button onClick={()=>moveTask(t,"next")} className="px-2 py-1 bg-blue-600 text-white rounded text-xs">›</button>}
+                        <button onClick={()=>deleteTask(t.id)} className="px-2 py-1 text-red-600 text-xs">Suppr.</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </>
       ) : (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mt-4 flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 lg:overflow-visible">
         {TASK_ORDER.map((col) => {
           const colTasks = tasksByStatus(col);
           const colMeta = TASK_STATUSES.find((s) => s.value === col)!;
           return (
-            <div key={col} className="rounded-xl flex flex-col min-h-[400px] border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div key={col} className="snap-center shrink-0 w-[85vw] sm:w-[320px] lg:w-auto lg:shrink rounded-xl flex flex-col min-h-[360px] lg:min-h-[400px] border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden">
               <div className={`flex items-center justify-between px-3 py-2 border-b ${KANBAN_COL_BG[col]}`}>
                 <h3 className="font-bold text-sm flex items-center gap-2">
                   <span className={`px-2 py-1 rounded-full text-xs border ${colMeta.color}`}>{colMeta.label}</span>
                   <span className="text-slate-700 dark:text-slate-100 font-bold bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full text-xs shadow-sm">{colTasks.length}</span>
                 </h3>
               </div>
-              <div className="p-3 space-y-3 flex-1">
+              <div className="p-3 space-y-3 flex-1 overflow-y-auto">
                 {colTasks.length === 0 ? (
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 rounded-lg py-6 text-center border border-dashed">Aucune tâche</p>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-200 bg-white/80 dark:bg-slate-700/50 rounded-lg py-6 text-center border border-dashed">Aucune tâche</p>
                 ) : colTasks.map((t) => (
                   <TaskCard key={t.id} task={t} num={taskNumber(t)} onUpdate={handleInlineUpdate} onDelete={deleteTask} onMove={moveTask} />
                 ))}

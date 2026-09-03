@@ -71,24 +71,24 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold dark:text-white">Mes Projets</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold dark:text-white">Mes Projets</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">Cliquez sur un projet pour voir ses tâches</p>
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="bg-green-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-green-700">
+        <button onClick={() => setShowForm((v) => !v)} className="w-full sm:w-auto bg-green-600 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium hover:bg-green-700 touch-manipulation">
           + Nouveau projet
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={createProject} className="mt-6 bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold mb-3">Créer un projet</h3>
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du projet (ex: Refonte site vitrine)" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" className="mt-3 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2" rows={2} />
-          <div className="mt-3 flex gap-2">
-            <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg">Créer</button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-300 rounded-lg">Annuler</button>
+        <form onSubmit={createProject} className="mt-6 bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+          <h3 className="font-semibold dark:text-white mb-3">Créer un projet</h3>
+          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom du projet (ex: Refonte site vitrine)" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" className="mt-3 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm" rows={2} />
+          <div className="mt-3 flex flex-col-reverse sm:flex-row gap-2">
+            <button type="button" onClick={() => setShowForm(false)} className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 dark:border-slate-600 dark:text-white rounded-lg">Annuler</button>
+            <button type="submit" className="w-full sm:w-auto bg-slate-900 text-white px-4 py-2.5 rounded-lg">Créer</button>
           </div>
         </form>
       )}
@@ -109,15 +109,15 @@ export default function DashboardPage() {
           <p className="text-sm text-slate-500 mt-1">Créez votre premier projet pour commencer à ajouter des tâches.</p>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {projects.map((p) => (
-            <div key={p.id} className={`bg-slate-100 dark:bg-slate-800 rounded-xl border p-5 hover:shadow-md transition-shadow flex flex-col ${p.is_notion_done ? "border-green-500 ring-1 ring-green-200" : "border-slate-200 dark:border-slate-700"}`}>
-              <Link href={`/dashboard/projects/${p.id}`} className="flex-1">
+            <div key={p.id} className={`bg-slate-100 dark:bg-slate-800 rounded-xl border p-4 sm:p-5 hover:shadow-md transition-shadow flex flex-col ${p.is_notion_done ? "border-green-500 ring-1 ring-green-200" : "border-slate-200 dark:border-slate-700"}`}>
+              <Link href={`/dashboard/projects/${p.id}`} className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-lg dark:text-white leading-tight hover:text-blue-600">{p.name}</h3>
-                  {p.is_notion_done && <span className="px-2 py-1 rounded-full text-xs font-bold bg-green-600 text-white whitespace-nowrap">✓ Done Notion</span>}
+                  <h3 className="font-semibold text-base sm:text-lg dark:text-white leading-tight hover:text-blue-600 break-words">{p.name}</h3>
+                  {p.is_notion_done && <span className="px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-green-600 text-white whitespace-nowrap shrink-0">✓ Done</span>}
                 </div>
-                {p.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">{p.description}</p>}
+                {p.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 break-words">{p.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-800">À faire: {counts[p.id]?.a_faire ?? 0}</span>
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En cours: {counts[p.id]?.en_cours ?? 0}</span>
@@ -125,14 +125,14 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-xs text-slate-400 mt-3">Créé le {new Date(p.created_at).toLocaleDateString("fr-FR")}</p>
               </Link>
-              <div className="mt-3 flex items-center gap-2">
-                <button onClick={() => toggleNotion(p)} className={`flex-1 py-2 rounded-lg text-sm font-medium border ${p.is_notion_done ? "bg-green-600 text-white border-green-600 hover:bg-green-700" : "bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-50"}`}>
-                  {p.is_notion_done ? "✓ Notion ON" : "○ Notion OFF"}
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <button onClick={() => toggleNotion(p)} className={`py-2.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium border truncate ${p.is_notion_done ? "bg-green-600 text-white border-green-600 hover:bg-green-700" : "bg-white dark:bg-slate-700 dark:text-white border-slate-300 dark:border-slate-600 hover:bg-slate-50"}`}>
+                  {p.is_notion_done ? "✓ ON" : "○ OFF"}
                 </button>
-                <Link href={`/dashboard/projects/${p.id}`} className="flex-1 text-center bg-slate-900 text-white text-sm py-2 rounded-lg hover:bg-slate-800">Voir</Link>
-                <button onClick={() => deleteProject(p.id)} className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-red-50 hover:text-red-600">Suppr.</button>
+                <Link href={`/dashboard/projects/${p.id}`} className="text-center bg-slate-900 text-white text-xs sm:text-sm py-2.5 sm:py-2 rounded-lg hover:bg-slate-800 flex items-center justify-center">Voir</Link>
+                <button onClick={() => deleteProject(p.id)} className="py-2.5 sm:py-2 text-xs sm:text-sm border border-slate-200 dark:border-slate-700 dark:text-white rounded-lg hover:bg-red-50 hover:text-red-600">Suppr.</button>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">Tous les users peuvent toucher ce bouton</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">Tous les users peuvent toucher ce bouton</p>
             </div>
           ))}
         </div>
