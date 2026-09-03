@@ -213,7 +213,7 @@ export default function ProjectTasksPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
                 <Link href={`/dashboard/projects/${id}/whiteboard`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-xs sm:text-sm font-medium hover:bg-purple-700 shrink-0">
-                  ✏️ Excalidraw
+                  🖼️ Image
                 </Link>
               </div>
               {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 break-words">{project.description}</p>}
