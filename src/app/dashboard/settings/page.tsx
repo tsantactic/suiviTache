@@ -48,35 +48,35 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-2xl font-bold">Paramètres</h1>
+      <h1 className="text-2xl font-bold dark:text-white">Paramètres</h1>
       <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Gérez votre compte</p>
 
       <div className="mt-6 bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-        <h3 className="font-semibold">Mon compte</h3>
+        <h3 className="font-semibold dark:text-white">Mon compte</h3>
         <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Connecté en tant que <span className="font-medium text-slate-900 dark:text-white">{email || "—"}</span></p>
         <p className="text-xs text-slate-500 mt-1">User comme admin peuvent changer leur email et mot de passe ici.</p>
       </div>
 
       <form onSubmit={handleEmail} className="mt-4 bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-        <h3 className="font-semibold">Changer l&apos;email</h3>
-        {errEmail && <p className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">{errEmail}</p>}
-        {msgEmail && <p className="mt-3 text-sm text-green-700 bg-green-50 p-2 rounded">{msgEmail}</p>}
-        <label className="block mt-3 text-sm font-medium">Nouvel email</label>
-        <input type="email" required value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <h3 className="font-semibold dark:text-white">Changer l&apos;email</h3>
+        {errEmail && <p className="mt-3 text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-200 dark:border-red-800">{errEmail}</p>}
+        {msgEmail && <p className="mt-3 text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 p-2 rounded border border-green-200 dark:border-green-800">{msgEmail}</p>}
+        <label className="block mt-3 text-sm font-medium dark:text-slate-200">Nouvel email</label>
+        <input type="email" required value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <button type="submit" disabled={loadingEmail} className="mt-4 w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50">
           {loadingEmail ? "Mise à jour..." : "Mettre à jour l'email"}
         </button>
       </form>
 
       <form onSubmit={handleChange} className="mt-4 bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-        <h3 className="font-semibold">Changer le mot de passe</h3>
-        <p className="text-xs text-slate-500 mt-1">La mise à jour est instantanée, pas besoin de se reconnecter.</p>
-        {err && <p className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">{err}</p>}
-        {msg && <p className="mt-3 text-sm text-green-700 bg-green-50 p-2 rounded">{msg}</p>}
-        <label className="block mt-4 text-sm font-medium">Nouveau mot de passe</label>
-        <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        <label className="block mt-3 text-sm font-medium">Confirmer</label>
-        <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <h3 className="font-semibold dark:text-white">Changer le mot de passe</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">La mise à jour est instantanée, pas besoin de se reconnecter.</p>
+        {err && <p className="mt-3 text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-200 dark:border-red-800">{err}</p>}
+        {msg && <p className="mt-3 text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 p-2 rounded border border-green-200 dark:border-green-800">{msg}</p>}
+        <label className="block mt-4 text-sm font-medium dark:text-slate-200">Nouveau mot de passe</label>
+        <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <label className="block mt-3 text-sm font-medium dark:text-slate-200">Confirmer</label>
+        <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <button type="submit" disabled={loading} className="mt-4 w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50">
           {loading ? "Mise à jour..." : "Mettre à jour le mot de passe"}
         </button>
