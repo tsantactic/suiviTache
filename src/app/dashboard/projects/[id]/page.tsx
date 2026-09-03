@@ -182,6 +182,21 @@ export default function ProjectTasksPage() {
     setImageUrl(null);
   };
 
+  const [quickNote, setQuickNote] = useState("");
+  const notesForImage = useMemo(() => tasks.filter((t:any) => (t.etape || 'recap') === 'recap'), [tasks]);
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickNote.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const temp: any = { id: "tmp_"+Date.now(), project_id: id, user_id: user.id, title: quickNote.trim(), status: "a_faire", etape: "recap", note: null, description: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    setTasks((ts) => [temp, ...ts]);
+    setQuickNote("");
+    const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title: temp.title, status: "a_faire", etape: "recap" }).select().single();
+    if (!error && data) setTasks((ts) => [data as Task, ...ts.filter((x) => x.id !== temp.id)]);
+    else setTasks((ts) => ts.filter((x) => x.id !== temp.id));
+  };
+
   const sortedByNum = useMemo(() => {
     const sorted = [...tasks].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     const map = new Map(sorted.map((t,i)=>[t.id, i+1]));
@@ -210,7 +225,7 @@ export default function ProjectTasksPage() {
     const temp: Task = { id: "tmp_"+Date.now(), project_id: id, user_id: user.id, title, status, note: note || null, start_date: startDate || null, description: note || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
     setTasks((ts) => [temp, ...ts]);
     setTitle(""); setStatus(DEFAULT_TASK_STATUS); setStartDate(""); setNote(""); setShowForm(false);
-    const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title: temp.title, status: temp.status, start_date: startDate || null, note: note || null, description: note || null }).select().single();
+    const { error, data } = await supabase.from("tasks").insert({ project_id: id, user_id: user.id, title: temp.title, status: temp.status, start_date: startDate || null, note: note || null, description: note || null, etape: "recap" }).select().single();
     if (!error && data) setTasks((ts) => [data as Task, ...ts.filter((x) => x.id !== temp.id)]);
     else { setTasks((ts) => ts.filter((x) => x.id !== temp.id)); if (error) alert(error.message); }
   };
@@ -286,6 +301,43 @@ export default function ProjectTasksPage() {
               <button onClick={() => setView("liste")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="liste"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Liste</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Image + Todos côte à côte */}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col">
+          <h3 className="font-semibold dark:text-white text-sm mb-3">🖼️ Image du projet</h3>
+          {imageUrl ? (
+            <div className="flex-1 flex flex-col items-center">
+              <img src={imageUrl} onClick={() => setShowImagePreview(true)} alt="Image projet" className="w-full max-h-64 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-white cursor-pointer hover:opacity-90" title="Clique pour voir" />
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Clique pour voir • Menu via bouton 🖼️ Image ci-dessus</p>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-white/50 dark:bg-slate-900/30">
+              <p className="text-3xl">🖼️</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Aucune image</p>
+              <button onClick={() => fileRef.current?.click()} className="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm">➕ Ajouter (1 seule)</button>
+            </div>
+          )}
+        </div>
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col">
+          <h3 className="font-semibold dark:text-white text-sm mb-2">📝 Todos / Notes <span className="font-normal text-xs text-slate-500">à côté de l&apos;image</span></h3>
+          <form onSubmit={handleQuickAdd} className="flex gap-2">
+            <input value={quickNote} onChange={(e)=>setQuickNote(e.target.value)} placeholder="Ajouter une note ou todo..." className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2 text-sm" />
+            <button type="submit" className="px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-lg text-sm shrink-0">Ajouter</button>
+          </form>
+          <div className="mt-3 space-y-2 max-h-64 overflow-y-auto pr-1">
+            {notesForImage.length===0 ? <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">Aucune note</p> :
+              notesForImage.slice(0,20).map((t) => (
+                <div key={t.id} className="flex items-start gap-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 p-2">
+                  <span className="text-xs font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded shrink-0">#{taskNumber(t)}</span>
+                  <p className="flex-1 text-sm dark:text-white break-words">{t.title}</p>
+                  <button onClick={()=>deleteTask(t.id)} className="text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded shrink-0">×</button>
+                </div>
+              ))}
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Étape: recap • {notesForImage.length} notes • Voir tout en Kanban/Liste ci-dessous</p>
         </div>
       </div>
 
