@@ -122,19 +122,65 @@ export default function ProjectTasksPage() {
   const [view, setView] = useState<"kanban"|"liste">("kanban");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortAsc, setSortAsc] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [showImageMenu, setShowImageMenu] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const imageMenuRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async (showLoader = true) => {
     if (showLoader) setLoading(true);
-    const [projRes, tasksRes] = await Promise.all([
+    const [projRes, tasksRes, imgRes] = await Promise.all([
       supabase.from("projects").select("*").eq("id", id).single(),
       supabase.from("tasks").select("*").eq("project_id", id).order("created_at", { ascending: false }),
+      supabase.from("whiteboards").select("data").eq("project_id", id).single(),
     ]);
     if (projRes.data) setProject(projRes.data as Project);
     if (tasksRes.data) setTasks(tasksRes.data as Task[]);
+    if ((imgRes as any)?.data?.data?.image_url) setImageUrl((imgRes as any).data.data.image_url);
+    else setImageUrl(null);
     setLoading(false);
   };
 
   useEffect(() => { fetchData(true); }, [id]);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (imageMenuRef.current && !imageMenuRef.current.contains(e.target as Node)) setShowImageMenu(false); };
+    if (showImageMenu) document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [showImageMenu]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { alert("Seules les images PNG/JPG sont autorisées"); return; }
+    setImgUploading(true); setShowImageMenu(false);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("project-images").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("project-images").getPublicUrl(path);
+      const url = pub.publicUrl;
+      const { error: dbErr } = await supabase.from("whiteboards").upsert({ project_id: id, data: { image_url: url }, updated_at: new Date().toISOString() }, { onConflict: "project_id" });
+      if (dbErr) throw dbErr;
+      setImageUrl(url);
+    } catch (err: any) {
+      alert("Erreur: " + (err.message || "upload échoué") + " - Vérifie bucket project-images (migration-whiteboard.sql)");
+    } finally {
+      setImgUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleImageRemove = async () => {
+    setShowImageMenu(false);
+    if (!imageUrl) return;
+    if (!confirm("Supprimer l'image ?")) return;
+    await supabase.from("whiteboards").delete().eq("project_id", id);
+    setImageUrl(null);
+  };
 
   const sortedByNum = useMemo(() => {
     const sorted = [...tasks].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -212,9 +258,19 @@ export default function ProjectTasksPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold dark:text-white break-words">{project.name}</h1>
-                <Link href={`/dashboard/projects/${id}/whiteboard`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-xs sm:text-sm font-medium hover:bg-purple-700 shrink-0">
-                  🖼️ Image
-                </Link>
+                <div className="relative" ref={imageMenuRef}>
+                  <button onClick={() => setShowImageMenu((v) => !v)} disabled={imgUploading} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-600 text-white text-xs sm:text-sm font-medium hover:bg-purple-700 shrink-0">
+                    🖼️ Image {imgUploading ? "..." : "▾"}
+                  </button>
+                  {showImageMenu && (
+                    <div className="absolute left-0 top-full mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-20">
+                      {imageUrl && <button onClick={() => { setShowImagePreview(true); setShowImageMenu(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white">👁️ Voir</button>}
+                      <button onClick={() => fileRef.current?.click()} className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-white border-t border-slate-100 dark:border-slate-800">{imageUrl ? "➕ Remplacer" : "➕ Ajouter"} {imageUrl ? "" : "(1 seule)"}</button>
+                      {imageUrl && <button onClick={handleImageRemove} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-t border-slate-100 dark:border-slate-800">🗑️ Supprimer</button>}
+                    </div>
+                  )}
+                  <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageUpload} className="hidden" />
+                </div>
               </div>
               {project.description && <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 break-words">{project.description}</p>}
             </div>
@@ -348,6 +404,15 @@ export default function ProjectTasksPage() {
             </div>
           );
         })}
+        </div>
+      )}
+      {/* Modal Voir image - même page */}
+      {showImagePreview && imageUrl && (
+        <div onClick={() => setShowImagePreview(false)} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div onClick={(e) => e.stopPropagation()} className="relative max-w-5xl w-full">
+            <button onClick={() => setShowImagePreview(false)} className="absolute -top-10 right-0 text-white hover:text-slate-200 text-sm bg-black/50 px-3 py-1 rounded-full">✕ Fermer</button>
+            <img src={imageUrl} alt="Prévisualisation" className="w-full max-h-[85vh] object-contain rounded-lg bg-white" />
+          </div>
         </div>
       )}
     </div>
