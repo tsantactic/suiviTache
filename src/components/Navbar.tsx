@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const [email, setEmail] = useState<string | null>(null);
@@ -39,6 +40,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-2 text-sm">
           {email && <span className="text-slate-600 dark:text-slate-300 truncate max-w-[180px] lg:max-w-[240px]">{email} {role === "admin" && <span className="ml-1 bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">admin</span>}</span>}
           <ThemeToggle />
+          {role === "admin" && <NotificationBell />}
           <Link href="/dashboard" className="px-3 py-1.5 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700 whitespace-nowrap">Projets</Link>
           <Link href="/dashboard/settings" className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-medium hover:bg-amber-600 whitespace-nowrap">Paramètres</Link>
           <button onClick={logout} className="px-3 py-1.5 rounded-full bg-red-600 text-white font-medium hover:bg-red-700 whitespace-nowrap">
@@ -49,6 +51,7 @@ export default function Navbar() {
         {/* Mobile controls */}
         <div className="flex md:hidden items-center gap-2">
           <ThemeToggle />
+          {role === "admin" && <NotificationBell />}
           <button
             aria-label="Menu"
             onClick={() => setOpen((v) => !v)}

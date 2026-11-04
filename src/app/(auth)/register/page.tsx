@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -20,8 +21,8 @@ export default function RegisterPage() {
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) setError(error.message);
     else {
-      setSuccess("Compte créé ! Vérifiez votre email ou connectez-vous.");
-      setTimeout(() => router.push("/login"), 1500);
+      setSuccess("Compte créé !");
+      setShowPopup(true);
     }
     setLoading(false);
   };
@@ -42,6 +43,16 @@ export default function RegisterPage() {
         </button>
         <p className="mt-4 text-sm text-center text-slate-600 dark:text-slate-300">Déjà inscrit ? <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">Se connecter</Link></p>
       </form>
+      {showPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 text-center" role="dialog" aria-modal="true">
+            <div className="text-4xl mb-3">✉️</div>
+            <h2 className="text-lg font-bold dark:text-white">Merci de confirmer votre email</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Nous venons d&apos;envoyer un email de confirmation à <b className="dark:text-white">{email}</b>.<br/>Merci de confirmer et vérifier votre email avant la prochaine étape.<br/><br/>Après la vérification, un administrateur devra approuver votre inscription. Vous pourrez ensuite vous connecter.</p>
+            <button onClick={() => { setShowPopup(false); router.push("/login"); }} className="mt-5 w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700">Compris, aller à la connexion</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
