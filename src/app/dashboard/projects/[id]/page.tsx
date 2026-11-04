@@ -107,6 +107,40 @@ function TaskCard({ task, num, onUpdate, onDelete, onMove }: {
   );
 }
 
+
+function CarteCard({ task, num, onUpdate, onDelete }: {
+  task: Task;
+  num: number;
+  onUpdate: (id: string, patch: Partial<Task>) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [title, setTitle] = useState(task.title);
+  const [note, setNote] = useState(task.note || task.description || "");
+  const [saving, setSaving] = useState<"idle"|"saving"|"saved">("idle");
+  const titleRef = useRef<NodeJS.Timeout | null>(null);
+  const noteRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => { setTitle(task.title); setNote(task.note || task.description || ""); }, [task.id, task.title, task.note]);
+  const autoSaveTitle = (v: string) => { setTitle(v); if (titleRef.current) clearTimeout(titleRef.current); titleRef.current = setTimeout(async () => { if (v.trim() && v !== task.title) { setSaving("saving"); await onUpdate(task.id, { title: v }); setSaving("saved"); setTimeout(()=>setSaving("idle"), 800); } }, 600); };
+  const autoSaveNote = (v: string) => { setNote(v); if (noteRef.current) clearTimeout(noteRef.current); noteRef.current = setTimeout(async () => { if (v !== (task.note || "")) { setSaving("saving"); await onUpdate(task.id, { note: v, description: v } as any); setSaving("saved"); setTimeout(()=>setSaving("idle"), 800); } }, 700); };
+  return (
+    <div className="bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0">#{num}</span>
+        <select value={task.status} onChange={(e) => onUpdate(task.id, { status: e.target.value as TaskStatus })} title="Changer le statut" className={"px-2 py-1 rounded-full text-xs border font-medium bg-white dark:bg-slate-700 " + getStatusColor(task.status)}>
+          {TASK_STATUSES.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
+        </select>
+      </div>
+      <textarea value={title} onChange={(e) => autoSaveTitle(e.target.value)} rows={2} placeholder="Nom de la tache..." className="w-full font-bold text-sm dark:text-white bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 focus:border-blue-400 rounded px-2 py-1 outline-none resize-y shadow-sm" />
+      {saving !== "idle" && <span className={saving==="saving"?"text-[10px] text-amber-600":"text-[10px] text-green-600"}>{saving==="saving"?"Enregistrement...":"Enregistre"}</span>}
+      <textarea value={note} onChange={(e) => autoSaveNote(e.target.value)} placeholder="Note / commentaire..." rows={3} className="w-full text-xs bg-white dark:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-2 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-y shadow-sm" />
+      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+        <span>Debut: <b className="text-red-600 dark:text-red-400">{task.start_date ? new Date(task.start_date).toLocaleDateString("fr-FR") : new Date(task.created_at).toLocaleDateString("fr-FR")}</b></span>
+        <button onClick={() => onDelete(task.id)} className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded">Suppr.</button>
+      </div>
+    </div>
+  );
+}
+
 export default function ProjectTasksPage() {
   const { id } = useParams() as { id: string };
   const supabase = createClient();
@@ -119,9 +153,11 @@ export default function ProjectTasksPage() {
   const [status, setStatus] = useState<TaskStatus>(DEFAULT_TASK_STATUS);
   const [startDate, setStartDate] = useState("");
   const [note, setNote] = useState("");
-  const [view, setView] = useState<"kanban"|"liste">("kanban");
+  const [view, setView] = useState<"kanban"|"liste"|"carte">("kanban");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortAsc, setSortAsc] = useState(true);
+  const [sortKey, setSortKey] = useState<"num"|"title"|"status"|"start_date"|"created_at"|"updated_at"|"note">("num");
+  const toggleSort = (key: typeof sortKey) => { if (sortKey === key) setSortAsc(v=>!v); else { setSortKey(key); setSortAsc(true); } };
 
   const fetchData = async (showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -147,12 +183,22 @@ export default function ProjectTasksPage() {
     if (search) r = r.filter((t) => t.title.toLowerCase().includes(search.toLowerCase()) || (t.note && t.note.toLowerCase().includes(search.toLowerCase())));
     if (filterStatus !== "all") r = r.filter((t) => t.status === filterStatus);
     r = [...r].sort((a,b) => {
+      let cmp = 0;
       const na = sortedByNum.get(a.id) || 0;
       const nb = sortedByNum.get(b.id) || 0;
-      return sortAsc ? na - nb : nb - na;
+      switch(sortKey) {
+        case "title": cmp = a.title.localeCompare(b.title, "fr"); break;
+        case "status": cmp = TASK_ORDER.indexOf(a.status as TaskStatus) - TASK_ORDER.indexOf(b.status as TaskStatus); break;
+        case "start_date": cmp = new Date(a.start_date || a.created_at).getTime() - new Date(b.start_date || b.created_at).getTime(); break;
+        case "created_at": cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); break;
+        case "updated_at": cmp = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime(); break;
+        case "note": cmp = (a.note || "").localeCompare(b.note || "", "fr"); break;
+        default: cmp = na - nb;
+      }
+      return sortAsc ? cmp : -cmp;
     });
     return r;
-  }, [tasks, search, filterStatus, sortAsc, sortedByNum]);
+  }, [tasks, search, filterStatus, sortAsc, sortKey, sortedByNum]);
 
   const tasksByStatus = (s: TaskStatus) => filtered.filter((t) => t.status === s);
   const taskNumber = (t: Task) => sortedByNum.get(t.id) || 0;
@@ -223,6 +269,7 @@ export default function ProjectTasksPage() {
               <button onClick={() => setSortAsc(v=>!v)} className="shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white hover:bg-slate-50">Tri # {sortAsc ? "↑" : "↓"}</button>
               <button onClick={() => setView("kanban")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="kanban"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Kanban</button>
               <button onClick={() => setView("liste")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="liste"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Liste</button>
+              <button onClick={() => setView("carte")} className={`shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium border ${view==="carte"?"bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-slate-900":"bg-white dark:bg-slate-800 dark:text-white border-slate-200 dark:border-slate-700"}`}>Carte</button>
             </div>
           </div>
         </div>
@@ -296,7 +343,7 @@ export default function ProjectTasksPage() {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-900 border-b"><tr className="text-left text-xs font-semibold text-slate-600 dark:text-slate-300"><th className="px-3 py-2 whitespace-nowrap">#</th><th className="px-3 py-2 whitespace-nowrap">Tâche</th><th className="px-3 py-2 whitespace-nowrap">Statut</th><th className="px-3 py-2 whitespace-nowrap">Début</th><th className="px-3 py-2 whitespace-nowrap">Création</th><th className="px-3 py-2 whitespace-nowrap">Terminée</th><th className="px-3 py-2 whitespace-nowrap">Note</th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
+                <thead className="bg-slate-50 dark:bg-slate-900 border-b"><tr className="text-left text-xs font-semibold text-slate-600 dark:text-slate-300"><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("num")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">#{sortKey==="num" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("title")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">Tache{sortKey==="title" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("status")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">Statut{sortKey==="status" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("start_date")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">Debut{sortKey==="start_date" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("created_at")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">Creation{sortKey==="created_at" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("updated_at")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">Terminee{sortKey==="updated_at" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap"><button onClick={() => toggleSort("note")} className="hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center gap-1">Note{sortKey==="note" ? (sortAsc ? " ↑" : " ↓") : ""}</button></th><th className="px-3 py-2 whitespace-nowrap text-right">Actions</th></tr></thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {filtered.length===0 ? <tr><td colSpan={8} className="p-8 text-center text-slate-500">Aucune tâche</td></tr> :
                   filtered.map((t) => (
@@ -319,6 +366,25 @@ export default function ProjectTasksPage() {
               </table>
             </div>
           </div>
+        </>
+      ) : view === "carte" ? (
+        <>
+          <div className="mt-4 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex gap-2 items-center">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2.5 text-sm">
+              <option value="all">Tous les statuts</option>
+              {TASK_STATUSES.map((st) => <option key={st.value} value={st.value}>{st.label}</option>)}
+            </select>
+            <span className="text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{filtered.length} taches</span>
+          </div>
+          {filtered.length === 0 ? (
+            <p className="text-center text-slate-500 dark:text-slate-400 py-10 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mt-4">Aucune tache</p>
+          ) : (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {filtered.map((t) => (
+                <CarteCard key={t.id} task={t} num={taskNumber(t)} onUpdate={handleInlineUpdate} onDelete={deleteTask} />
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <div className="mt-4 flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 lg:overflow-visible">
