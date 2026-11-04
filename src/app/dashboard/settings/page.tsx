@@ -9,6 +9,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState<string>("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [msg, setMsg] = useState("");
   const [msgEmail, setMsgEmail] = useState("");
@@ -46,10 +47,15 @@ export default function SettingsPage() {
     setErr(""); setMsg("");
     if (newPassword.length < 6) { setErr("Mot de passe min 6 caractères"); return; }
     if (newPassword !== confirm) { setErr("Les mots de passe ne correspondent pas"); return; }
+    if (!currentPassword) { setErr("Veuillez saisir votre ancien mot de passe"); return; }
     setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) { setErr("Email introuvable"); setLoading(false); return; }
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPassword });
+    if (signInErr) { setErr("Ancien mot de passe incorrect"); setLoading(false); return; }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) setErr(error.message);
-    else { setMsg("Mot de passe mis à jour avec succès"); setNewPassword(""); setConfirm(""); }
+    else { setMsg("Mot de passe mis à jour avec succès"); setCurrentPassword(""); setNewPassword(""); setConfirm(""); }
     setLoading(false);
   };
 
@@ -81,7 +87,9 @@ export default function SettingsPage() {
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">La mise à jour est instantanée, pas besoin de se reconnecter.</p>
         {err && <p className="mt-3 text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-200 dark:border-red-800">{err}</p>}
         {msg && <p className="mt-3 text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 p-2 rounded border border-green-200 dark:border-green-800">{msg}</p>}
-        <label className="block mt-4 text-sm font-medium dark:text-slate-200">Nouveau mot de passe</label>
+        <label className="block mt-4 text-sm font-medium dark:text-slate-200">Ancien mot de passe</label>
+        <input type="password" required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <label className="block mt-3 text-sm font-medium dark:text-slate-200">Nouveau mot de passe</label>
         <input type="password" required value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <label className="block mt-3 text-sm font-medium dark:text-slate-200">Confirmer</label>
         <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••" className="mt-1 w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
