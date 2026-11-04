@@ -41,7 +41,6 @@ export default function Navbar() {
           <ThemeToggle />
           <Link href="/dashboard" className="px-3 py-1.5 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700 whitespace-nowrap">Projets</Link>
           <Link href="/dashboard/settings" className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-medium hover:bg-amber-600 whitespace-nowrap">Paramètres</Link>
-          {role === "admin" && <Link href="/admin" className="px-3 py-1.5 rounded-full bg-purple-600 text-white font-medium hover:bg-purple-700 whitespace-nowrap">Admin</Link>}
           <button onClick={logout} className="px-3 py-1.5 rounded-full bg-red-600 text-white font-medium hover:bg-red-700 whitespace-nowrap">
             Déconnexion
           </button>
@@ -69,7 +68,6 @@ export default function Navbar() {
           <div className="grid grid-cols-2 gap-2">
             <Link href="/dashboard" onClick={() => setOpen(false)} className="text-center px-3 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700">Projets</Link>
             <Link href="/dashboard/settings" onClick={() => setOpen(false)} className="text-center px-3 py-2.5 rounded-xl bg-amber-500 text-white font-medium">Paramètres</Link>
-            {role === "admin" && <Link href="/admin" onClick={() => setOpen(false)} className="text-center px-3 py-2.5 rounded-xl bg-purple-600 text-white font-medium">Admin</Link>}
             <button onClick={logout} className="col-span-2 px-3 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700">
               Déconnexion
             </button>
