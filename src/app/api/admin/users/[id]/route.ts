@@ -26,6 +26,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   }
   if (role) {
+    if (role !== "admin") {
+      const { data: target } = await admin.from("profiles").select("role").eq("id", id).single();
+      if (target?.role === "admin") {
+        const { count } = await admin.from("profiles").select("*", { count: "exact", head: true }).eq("role", "admin");
+        if ((count ?? 0) <= 1) return NextResponse.json({ error: "Impossible : il doit rester au moins un admin sur cette application. Promouvez un autre utilisateur en admin d'abord." }, { status: 400 });
+      }
+    }
     const { error } = await admin.from("profiles").update({ role }).eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   }
@@ -35,6 +42,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   if (!await isAdmin()) return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   const admin = createAdminClient();
+  const { data: target } = await admin.from("profiles").select("role").eq("id", params.id).single();
+  if (target?.role === "admin") {
+    const { count } = await admin.from("profiles").select("*", { count: "exact", head: true }).eq("role", "admin");
+    if ((count ?? 0) <= 1) return NextResponse.json({ error: "Impossible : il doit rester au moins un admin sur cette application. Promouvez un autre utilisateur en admin d'abord." }, { status: 400 });
+  }
   const { error } = await admin.auth.admin.deleteUser(params.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   // profiles cascade delete via FK, but ensure

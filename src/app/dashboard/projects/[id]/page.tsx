@@ -276,8 +276,12 @@ export default function ProjectTasksPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-6 bg-slate-100 dark:bg-slate-800 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold dark:text-white mb-3">Nouvelle tâche</h3>
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={() => setShowForm(false)}>
+          <form onSubmit={handleCreate} onClick={(e) => e.stopPropagation()} className="w-full max-w-lg my-8 bg-slate-100 dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold dark:text-white">Nouvelle tâche</h3>
+            <button type="button" onClick={() => setShowForm(false)} aria-label="Fermer" className="w-8 h-8 rounded-full border border-slate-300 dark:border-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700">×</button>
+          </div>
           <input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nom de la tâche" className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white rounded-lg px-3 py-2.5 text-base sm:text-sm" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
             <div>
@@ -297,7 +301,8 @@ export default function ProjectTasksPage() {
             <button type="button" onClick={() => setShowForm(false)} className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 dark:border-slate-600 dark:text-white rounded-lg">Annuler</button>
             <button type="submit" className="w-full sm:w-auto bg-slate-900 text-white px-4 py-2.5 rounded-lg">Créer</button>
           </div>
-        </form>
+          </form>
+        </div>
       )}
 
       {view === "liste" ? (

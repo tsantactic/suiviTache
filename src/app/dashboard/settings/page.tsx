@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
+import { AdminPanel } from "@/components/AdminPanel";
 
 export default function SettingsPage() {
   const supabase = createClient();
@@ -14,11 +16,16 @@ export default function SettingsPage() {
   const [errEmail, setErrEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       setEmail(data.user?.email ?? "");
       setNewEmail(data.user?.email ?? "");
+      if (data.user) {
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
+        setIsAdmin(profile?.role === "admin");
+      } else setIsAdmin(false);
     });
   }, []);
 
@@ -48,8 +55,9 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-2xl font-bold dark:text-white">Paramètres</h1>
-      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Gérez votre compte</p>
+      <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">← Retour</Link>
+      <h1 className="text-2xl font-bold dark:text-white mt-2">Paramètres</h1>
+      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Gérez votre compte et, pour les admins, toute la configuration de l&apos;application</p>
 
       <div className="mt-6 bg-slate-100 dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
         <h3 className="font-semibold dark:text-white">Mon compte</h3>
@@ -81,6 +89,14 @@ export default function SettingsPage() {
           {loading ? "Mise à jour..." : "Mettre à jour le mot de passe"}
         </button>
       </form>
+
+      {isAdmin && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold dark:text-white">Configuration de l&apos;application</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Utilisateurs, rôles, invitations, export et import — réservé aux admins. Au moins un admin doit toujours exister.</p>
+          <AdminPanel />
+        </div>
+      )}
     </div>
   );
 }
