@@ -28,7 +28,8 @@ function LoginInner() {
     else {
       const uid = data.user?.id;
       if (uid) {
-        const { data: profile } = await supabase.from("profiles").select("is_approved, approval_status").eq("id", uid).single();
+        let { data: profile } = await supabase.from("profiles").select("is_approved, approval_status, invited_pending").eq("id", uid).single();
+        if (!profile) ({ data: profile } = await supabase.from("profiles").select("is_approved, approval_status").eq("id", uid).single());
         if (profile && profile.is_approved === false) {
           await supabase.auth.signOut();
           if (profile.approval_status === "rejected") setError("Votre inscription a été refusée par un administrateur.");
@@ -36,6 +37,10 @@ function LoginInner() {
           else setError("Votre compte n'est pas encore approuvé. Un administrateur doit valider votre inscription via notification. Merci de patienter.");
           setLoading(false);
           return;
+        }
+        // L'utilisateur invité a terminé son inscription/connexion : le rendre visible dans la gestion
+        if (profile && (profile as any).invited_pending) {
+          try { await supabase.from("profiles").update({ invited_pending: false }).eq("id", uid); } catch {}
         }
       }
       router.push("/dashboard");

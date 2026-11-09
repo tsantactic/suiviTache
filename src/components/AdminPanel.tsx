@@ -27,8 +27,9 @@ export function AdminPanel() {
   const [spaceCounts, setSpaceCounts] = useState<Record<string, number>>({});
 
   const fetchUsers = async () => {
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
-    if (data) setUsers(data);
+    let res = await supabase.from("profiles").select("*").or("invited_pending.is.false,invited_pending.is.null").order("created_at", { ascending: false });
+    if (res.error) res = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    if (res.data) setUsers(res.data);
     const { data: spaces } = await supabase.from("spaces").select("user_id");
     const counts: Record<string, number> = {};
     (spaces as any[] || []).forEach((s) => { if (s.user_id) counts[s.user_id] = (counts[s.user_id] || 0) + 1; });

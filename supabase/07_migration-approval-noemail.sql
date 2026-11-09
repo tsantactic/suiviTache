@@ -56,9 +56,9 @@ begin
   v_approved := (v_role = 'admin' or v_invited);
   v_status := case when v_approved then 'approved' else 'pending' end;
 
-  insert into public.profiles (id, email, role, is_approved, email_verified, approval_status)
-  values (new.id, new.email, v_role, v_approved, true, v_status)
-  on conflict (id) do update set role = excluded.role, is_approved = excluded.is_approved, approval_status = excluded.approval_status;
+  insert into public.profiles (id, email, role, is_approved, email_verified, approval_status, invited_pending)
+  values (new.id, new.email, v_role, v_approved, true, v_status, v_invited)
+  on conflict (id) do update set role = excluded.role, is_approved = excluded.is_approved, approval_status = excluded.approval_status, invited_pending = excluded.invited_pending;
 
   -- Notification admin uniquement pour une auto-inscription (pas une invitation)
   if v_role <> 'admin' and not v_invited then

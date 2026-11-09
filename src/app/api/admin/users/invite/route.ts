@@ -17,9 +17,11 @@ export async function POST(req: NextRequest) {
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: { role, invited: true } });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Invité par admin : profil approuvé (pas de notification d'inscription)
+  // Invité par admin : profil approuvé (pas de notification d'inscription), masqué de la gestion tant que non inscrit
   if (data.user) {
-    await admin.from("profiles").upsert({ id: data.user.id, email, role, is_approved: true, approval_status: "approved", email_verified: true });
+    const payload: any = { id: data.user.id, email, role, is_approved: true, approval_status: "approved", email_verified: true, invited_pending: true };
+    const { error: upErr } = await admin.from("profiles").upsert(payload);
+    if (upErr) await admin.from("profiles").upsert({ id: data.user.id, email, role, is_approved: true, approval_status: "approved", email_verified: true });
   }
 
   return NextResponse.json({ ok: true, message: `Invitation envoyée à ${email}` });
