@@ -101,7 +101,7 @@ export default function DashboardPage() {
       {orphanProjects.length > 0 && (
         <div className="mt-4 p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700">
           <p className="font-semibold text-amber-900 dark:text-amber-200">Tes anciens projets ne sont pas perdus ({orphanProjects.length}{orphanProjects.length >= 50 ? "+" : ""}).</p>
-          <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">Ils existent encore dans la base. Exécute la migration <code className="px-1 bg-amber-100 dark:bg-amber-900 rounded">supabase/migration-spaces.sql</code> dans le <b>Supabase SQL Editor</b> pour les placer automatiquement dans un espace nommé <b>"Espace"</b>, puis recharge cette page.</p>
+          <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">Ils existent encore dans la base. Exécute la migration <code className="px-1 bg-amber-100 dark:bg-amber-900 rounded">supabase/08_migration-spaces.sql</code> dans le <b>Supabase SQL Editor</b> pour les placer automatiquement dans un espace nommé <b>&quot;Espace&quot;</b>, puis recharge cette page.</p>
           <ul className="mt-2 text-sm text-amber-900 dark:text-amber-100 list-disc pl-5 max-h-32 overflow-auto">
             {orphanProjects.map((p) => <li key={p.id}>{p.name}</li>)}
           </ul>
