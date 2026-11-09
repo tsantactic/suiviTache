@@ -22,7 +22,7 @@ npm run dev
 ## Supabase
 
 1. Créer un projet sur https://supabase.com
-2. SQL Editor → coller `supabase/schema.sql` → Run
+2. SQL Editor → exécuter les scripts `supabase/` dans l’ordre (voir `supabase/README.md`), au minimum `01_schema.sql` → Run
 3. Authentication → Settings → désactiver "Confirm email" pour tests (optionnel)
 4. Copier URL + anon key dans `.env.local`
 

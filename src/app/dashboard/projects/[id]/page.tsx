@@ -293,7 +293,7 @@ export default function ProjectTasksPage() {
   if (accessState === "denied" || accessState === "pending") {
     return (
       <div className="max-w-lg mx-auto mt-8">
-        <Link href="/dashboard" className="text-sm text-slate-600 dark:text-slate-300">← Retour aux espaces</Link>
+        <Link href={project?.space_id ? `/dashboard/spaces/${project.space_id}` : "/dashboard"} className="text-sm text-slate-600 dark:text-slate-300">← Retour aux projets</Link>
         <div className="mt-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 text-center">
           <h1 className="text-xl font-bold dark:text-white">{project.name}</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Accès protégé. Le créateur de l&apos;espace doit accepter ta demande.</p>
@@ -312,7 +312,7 @@ export default function ProjectTasksPage() {
     <div>
       {/* Sticky floating header */}
       <div className="sticky top-[57px] z-10 -mx-3 sm:-mx-4 lg:mx-0 px-3 sm:px-4 lg:px-0 py-3 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-700 shadow-sm">
-        <Link href="/dashboard" className="inline-flex items-center text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">← Retour aux projets</Link>
+        <Link href={project?.space_id ? `/dashboard/spaces/${project.space_id}` : "/dashboard"} className="inline-flex items-center text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">← Retour aux projets</Link>
         <div className="mt-2 flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

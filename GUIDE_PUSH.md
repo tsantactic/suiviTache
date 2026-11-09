@@ -70,7 +70,7 @@ git push origin main
 
 ## 4. Modif Supabase (tables / RLS)
 
-1. Modifie `supabase/schema.sql` ou crée `supabase/migration-xxx.sql`
+1. Modifie le script SQL concerné dans `supabase/` ou crée un nouveau fichier numéroté (ex: `supabase/09_migration-xxx.sql`) — voir `supabase/README.md`
 2. Va sur `supabase.com > SQL Editor > New query` → colle le SQL → `Run`
 3. Commit le fichier SQL aussi :
 ```bash
@@ -109,9 +109,9 @@ src/app/dashboard/projects/[id]/page.tsx      # tâches d'un projet (kanban/list
 src/app/dashboard/settings/page.tsx           # compte + panneau admin (si admin)
 src/components/AdminPanel.tsx                 # gestion utilisateurs, rôles, export/import
 supabase/README.md                            # QUELS scripts SQL exécuter (référence)
-supabase/schema.sql                           # schéma de base
-supabase/migration-approval-noemail.sql       # inscription sans email + approbation admin (notif)
-supabase/migration-spaces.sql                 # espaces + migration anciens projets → "Espace"
+supabase/01_schema.sql                       # schéma de base
+supabase/07_migration-approval-noemail.sql    # inscription sans email + approbation admin (notif)
+supabase/08_migration-spaces.sql              # espaces + migration anciens projets → "Espace"
 ```
 
 Voir **`supabase/README.md`** pour l'ordre des migrations. Tu n'as besoin de personne : édite → `npm run build` → `git add/commit/push` → Vercel fait le reste.

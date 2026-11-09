@@ -53,7 +53,7 @@ export default function WhiteboardPage() {
       setImageUrl(url);
       setMsg("Image mise à jour avec succès (une seule image par projet)");
     } catch (err: any) {
-      setMsg("Erreur: " + (err.message || "upload échoué") + " - Vérifie bucket project-images (migration-whiteboard.sql)");
+      setMsg("Erreur: " + (err.message || "upload échoué") + " - Vérifie bucket project-images (06_migration-whiteboard.sql)");
     } finally {
       setUploading(false);
       e.target.value = "";
