@@ -18,9 +18,15 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError(""); setSuccess("");
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) setError(error.message);
     else {
+      // Notifier les admins (flux sans email) via API
+      await fetch("/api/auth/register-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: data.user?.id, email }),
+      }).catch(() => {});
       setSuccess("Compte créé !");
       setShowPopup(true);
     }
@@ -46,9 +52,9 @@ export default function RegisterPage() {
       {showPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl p-6 text-center" role="dialog" aria-modal="true">
-            <div className="text-4xl mb-3">✉️</div>
-            <h2 className="text-lg font-bold dark:text-white">Merci de confirmer votre email</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Nous venons d&apos;envoyer un email de confirmation à <b className="dark:text-white">{email}</b>.<br/>Merci de confirmer et vérifier votre email avant la prochaine étape.<br/><br/>Après la vérification, un administrateur devra approuver votre inscription. Vous pourrez ensuite vous connecter.</p>
+            <div className="text-4xl mb-3">⏳</div>
+            <h2 className="text-lg font-bold dark:text-white">Inscription en attente d&apos;approbation</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Votre compte <b className="dark:text-white">{email}</b> a bien été créé.<br/><br/>Un administrateur doit maintenant accepter votre entrée sur l&apos;application SuiviTâche via une notification. Vous pourrez vous connecter dès que votre inscription sera approuvée.</p>
             <button onClick={() => { setShowPopup(false); router.push("/login"); }} className="mt-5 w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700">Compris, aller à la connexion</button>
           </div>
         </div>

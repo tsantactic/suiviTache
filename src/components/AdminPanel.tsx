@@ -2,6 +2,22 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+function formatExistence(createdAt?: string | null) {
+  if (!createdAt) return "—";
+  const start = new Date(createdAt).getTime();
+  if (Number.isNaN(start)) return "—";
+  const diffMs = Math.max(0, Date.now() - start);
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const years = Math.floor(days / 365);
+  const months = Math.floor((days % 365) / 30);
+  const remDays = days % 30;
+  const parts: string[] = [];
+  if (years) parts.push(`${years} an${years > 1 ? "s" : ""}`);
+  if (months) parts.push(`${months} mois`);
+  if (!years && !months) parts.push(`${remDays} jour${remDays > 1 ? "s" : ""}`);
+  return parts.join(" ") || "0 jour";
+}
+
 export function AdminPanel() {
   const supabase = createClient();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -131,6 +147,7 @@ function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole:
   return (
     <tr className="dark:text-slate-200">
       <td className="px-2 py-2 text-xs">{u.email}<br/><span className={`px-1.5 py-0.5 rounded-full text-[10px] ${u.role==='admin'?'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200':'bg-slate-100 dark:bg-slate-700 dark:text-slate-200'}`}>{u.role}</span></td>
+      <td className="px-2 py-2 text-xs whitespace-nowrap" title={u.created_at ? new Date(u.created_at).toLocaleString("fr-FR") : ""}>{formatExistence(u.created_at)}</td>
       <td className="px-2 py-2"><select value={u.role} onChange={(e) => onRole(u.id, e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded px-1 py-1 text-xs"><option value="user">user</option><option value="admin">admin</option></select></td>
       <td className="px-2 py-2"><div className="flex gap-1"><input value={email} onChange={(e)=>setEmail(e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded px-1 py-1 text-xs w-28" /><button onClick={()=>onEmail(u.id, email)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">OK</button></div></td>
       <td className="px-2 py-2"><div className="flex gap-1"><input type="password" placeholder="••••" value={pwd} onChange={(e)=>setPwd(e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded px-1 py-1 text-xs w-24" /><button onClick={()=>{onPassword(u.id,pwd); setPwd("");}} className="px-2 py-1 bg-slate-900 dark:bg-slate-700 text-white rounded text-xs hover:bg-slate-800">OK</button></div></td>
@@ -149,6 +166,7 @@ function MobileUserCard({ u, onRole, onEmail, onPassword, onDelete }: { u: any; 
         <p className="text-sm font-medium dark:text-white break-all">{u.email}</p>
         <span className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ${u.role==='admin'?'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200':'bg-slate-100 dark:bg-slate-700 dark:text-slate-200'}`}>{u.role}</span>
       </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400">Existence dans l&apos;app : <b className="text-slate-700 dark:text-slate-200">{formatExistence(u.created_at)}</b>{u.created_at ? ` (depuis le ${new Date(u.created_at).toLocaleDateString("fr-FR")})` : ""}</p>
       <div className="flex gap-2">
         <select value={u.role} onChange={(e) => onRole(u.id, e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2.5 text-sm"><option value="user">user</option><option value="admin">admin</option></select>
         <button onClick={()=>onDelete(u.id)} className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Suppr.</button>
@@ -207,7 +225,7 @@ function MobileUserCard({ u, onRole, onEmail, onPassword, onDelete }: { u: any; 
             <div className="mt-4 hidden lg:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-900">
-                  <tr className="text-left text-xs text-slate-600 dark:text-slate-300"><th className="px-2 py-2">Email</th><th className="px-2 py-2">Rôle</th><th className="px-2 py-2">Nouvel email</th><th className="px-2 py-2">Nouveau mdp</th><th className="px-2 py-2">Actions</th></tr>
+                  <tr className="text-left text-xs text-slate-600 dark:text-slate-300"><th className="px-2 py-2">Email</th><th className="px-2 py-2">Existence</th><th className="px-2 py-2">Rôle</th><th className="px-2 py-2">Nouvel email</th><th className="px-2 py-2">Nouveau mdp</th><th className="px-2 py-2">Actions</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {users.map((u) => (

@@ -157,17 +157,60 @@ export default function ProjectTasksPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortAsc, setSortAsc] = useState(true);
   const [sortKey, setSortKey] = useState<"num"|"title"|"status"|"start_date"|"created_at"|"updated_at"|"note">("num");
+  const [accessState, setAccessState] = useState<"loading"|"ok"|"denied"|"pending">("loading");
+  const [accessMsg, setAccessMsg] = useState("");
   const toggleSort = (key: typeof sortKey) => { if (sortKey === key) setSortAsc(v=>!v); else { setSortKey(key); setSortAsc(true); } };
 
   const fetchData = async (showLoader = true) => {
     if (showLoader) setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
     const [projRes, tasksRes] = await Promise.all([
       supabase.from("projects").select("*").eq("id", id).single(),
       supabase.from("tasks").select("*").eq("project_id", id).order("created_at", { ascending: false }),
     ]);
     if (projRes.data) setProject(projRes.data as Project);
     if (tasksRes.data) setTasks(tasksRes.data as Task[]);
+
+    // Access control: via espace (space) si présent, sinon fallback propriétaire
+    const proj = projRes.data as any;
+    if (!proj) {
+      setAccessState("denied");
+    } else if (proj.space_id && user) {
+      const { data: sp } = await supabase.from("spaces").select("id,user_id").eq("id", proj.space_id).single();
+      if (!sp || !(sp as any).user_id || (sp as any).user_id === user.id) setAccessState("ok");
+      else {
+        const { data: member } = await supabase.from("space_members").select("status").eq("space_id", proj.space_id).eq("user_id", user.id).maybeSingle();
+        if ((member as any)?.status === "approved") setAccessState("ok");
+        else if ((member as any)?.status === "pending") setAccessState("pending");
+        else setAccessState("denied");
+      }
+    } else if (!proj.user_id || (user && proj.user_id === user.id)) {
+      setAccessState("ok");
+    } else if (user) {
+      const { data: member } = await supabase.from("project_members").select("status").eq("project_id", id).eq("user_id", user.id).maybeSingle();
+      if ((member as any)?.status === "approved") setAccessState("ok");
+      else if ((member as any)?.status === "pending") setAccessState("pending");
+      else setAccessState("denied");
+    } else {
+      setAccessState("denied");
+    }
     setLoading(false);
+  };
+
+  const requestAccessHere = async () => {
+    setAccessMsg("");
+    const proj: any = project;
+    if (proj?.space_id) {
+      const r = await fetch("/api/spaces/access/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spaceId: proj.space_id }) });
+      const j = await r.json();
+      if (!r.ok) setAccessMsg("Erreur: " + (j.error || "inconnue"));
+      else { setAccessState("pending"); setAccessMsg("Demande envoyée au créateur de l'espace."); }
+      return;
+    }
+    const r = await fetch("/api/projects/access/request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId: id }) });
+    const j = await r.json();
+    if (!r.ok) setAccessMsg("Erreur: " + (j.error || "inconnue"));
+    else { setAccessState("pending"); setAccessMsg("Demande envoyée au créateur."); }
   };
 
   useEffect(() => { fetchData(true); }, [id]);
@@ -247,6 +290,23 @@ export default function ProjectTasksPage() {
     </div>
   );
   if (!project) return <p className="text-red-600">Projet introuvable.</p>;
+  if (accessState === "denied" || accessState === "pending") {
+    return (
+      <div className="max-w-lg mx-auto mt-8">
+        <Link href="/dashboard" className="text-sm text-slate-600 dark:text-slate-300">← Retour aux espaces</Link>
+        <div className="mt-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 text-center">
+          <h1 className="text-xl font-bold dark:text-white">{project.name}</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">Accès protégé. Le créateur de l&apos;espace doit accepter ta demande.</p>
+          {accessMsg && <p className="mt-3 text-sm text-blue-700 dark:text-blue-300">{accessMsg}</p>}
+          {accessState === "pending" ? (
+            <button disabled className="mt-4 px-5 py-2.5 bg-amber-100 text-amber-800 rounded-lg cursor-not-allowed">Demande envoyée</button>
+          ) : (
+            <button onClick={requestAccessHere} className="mt-4 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Entrer (demander l&apos;accès)</button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

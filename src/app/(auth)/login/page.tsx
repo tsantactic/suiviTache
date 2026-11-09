@@ -21,15 +21,10 @@ export default function LoginPage() {
     else {
       const uid = data.user?.id;
       if (uid) {
-        const { data: profile } = await supabase.from("profiles").select("is_approved, approval_status, email_verified").eq("id", uid).single();
+        const { data: profile } = await supabase.from("profiles").select("is_approved, approval_status").eq("id", uid).single();
         if (profile && profile.is_approved === false) {
           await supabase.auth.signOut();
-          setError(profile.approval_status === "rejected" ? "Votre inscription a été refusée par un administrateur." : "Votre compte n'est pas encore approuvé. Après la vérification de votre email, un administrateur doit valider votre inscription. Merci de patienter.");
-          setLoading(false);
-          return;
-        }
-        if (profile && profile.email_verified === false) {
-          setError("Merci de confirmer et vérifier votre email avant de vous connecter. Vérifiez votre boîte mail.");
+          setError(profile.approval_status === "rejected" ? "Votre inscription a été refusée par un administrateur." : "Votre compte n'est pas encore approuvé. Un administrateur doit valider votre inscription via notification. Merci de patienter.");
           setLoading(false);
           return;
         }
