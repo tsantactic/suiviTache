@@ -13,10 +13,14 @@ export default function DashboardPage() {
   const [access, setAccess] = useState<Record<string, "pending" | "approved" | "rejected" | "none" | "owner">>({});
   const [reqMsg, setReqMsg] = useState<Record<string, string>>({});
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [orphanProjects, setOrphanProjects] = useState<{ id: string; name: string }[]>([]);
+  const [migrationHint, setMigrationHint] = useState("");
   const supabase = createClient();
 
   const fetchSpaces = async (showLoader = true) => {
     if (showLoader) setLoading(true);
+    setMigrationHint("");
+    setOrphanProjects([]);
     const { data: { user } } = await supabase.auth.getUser();
     const uid = user?.id ?? null;
     setCurrentUserId(uid);
@@ -36,6 +40,22 @@ export default function DashboardPage() {
         data.forEach((s: any) => { acc[s.id] = (!s.user_id || s.user_id === uid) ? "owner" : "none"; });
         (members as any[] || []).forEach((m) => { if (acc[m.space_id] !== "owner") acc[m.space_id] = m.status; });
         setAccess(acc);
+      }
+      // Projets non migrés (space_id manquant) : sécurité pour ne rien perdre
+      const { data: orphans, error: orphanErr } = await supabase.from("projects").select("id,name").is("space_id", null).limit(50);
+      if (!orphanErr && orphans && orphans.length > 0) {
+        setOrphanProjects(orphans as any);
+        setMigrationHint(`migration requise`);
+      }
+    } else {
+      // Table spaces absente ou erreur : afficher les projets existants pour rassurer
+      setSpaces([]);
+      const { data: anyProjects } = await supabase.from("projects").select("id,name").order("created_at", { ascending: false }).limit(50);
+      if (anyProjects && anyProjects.length > 0) {
+        setOrphanProjects(anyProjects as any);
+        setMigrationHint("migration requise (table espaces absente)");
+      } else if (error) {
+        setMigrationHint(error.message);
       }
     }
     setLoading(false);
@@ -77,6 +97,16 @@ export default function DashboardPage() {
           + Nouvel espace
         </button>
       </div>
+
+      {orphanProjects.length > 0 && (
+        <div className="mt-4 p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700">
+          <p className="font-semibold text-amber-900 dark:text-amber-200">Tes anciens projets ne sont pas perdus ({orphanProjects.length}{orphanProjects.length >= 50 ? "+" : ""}).</p>
+          <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">Ils existent encore dans la base. Exécute la migration <code className="px-1 bg-amber-100 dark:bg-amber-900 rounded">supabase/migration-spaces.sql</code> dans le <b>Supabase SQL Editor</b> pour les placer automatiquement dans un espace nommé <b>"Espace"</b>, puis recharge cette page.</p>
+          <ul className="mt-2 text-sm text-amber-900 dark:text-amber-100 list-disc pl-5 max-h-32 overflow-auto">
+            {orphanProjects.map((p) => <li key={p.id}>{p.name}</li>)}
+          </ul>
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={createSpace} className="mt-6 bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-700">
