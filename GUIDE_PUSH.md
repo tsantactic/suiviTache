@@ -103,13 +103,15 @@ git push -f origin main
 ## 7. Structure à connaître
 
 ```
-src/app/dashboard/page.tsx          # liste projets
-src/app/dashboard/projects/[id]/page.tsx  # liste tâches en colonnes
-src/app/dashboard/settings/page.tsx # changer email + mdp (user & admin)
-src/app/admin/page.tsx              # gestion rôles + export/import
-supabase/schema.sql                 # tables + RLS (à exécuter 1x)
-supabase/admin-policies.sql         # droits admin (à exécuter 1x)
-supabase/auto-admin.sql             # auto-admin par email
+src/app/dashboard/page.tsx                    # liste des espaces
+src/app/dashboard/spaces/[id]/page.tsx        # projets/membres/gestion d'un espace
+src/app/dashboard/projects/[id]/page.tsx      # tâches d'un projet (kanban/liste/carte)
+src/app/dashboard/settings/page.tsx           # compte + panneau admin (si admin)
+src/components/AdminPanel.tsx                 # gestion utilisateurs, rôles, export/import
+supabase/README.md                            # QUELS scripts SQL exécuter (référence)
+supabase/schema.sql                           # schéma de base
+supabase/migration-approval-noemail.sql       # inscription sans email + approbation admin (notif)
+supabase/migration-spaces.sql                 # espaces + migration anciens projets → "Espace"
 ```
 
-Tu n'as besoin de personne : édite → `npm run build` → `git add/commit/push` → Vercel fait le reste.
+Voir **`supabase/README.md`** pour l'ordre des migrations. Tu n'as besoin de personne : édite → `npm run build` → `git add/commit/push` → Vercel fait le reste.

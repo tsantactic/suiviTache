@@ -193,52 +193,49 @@ export default function SpaceDetailPage() {
         ))}
       </div>
 
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <h3 className="font-semibold dark:text-white">Membres de l&apos;espace</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Les membres peuvent gérer l&apos;espace. Un membre peut être renvoyé.</p>
-          <ul className="mt-3 space-y-2">
-            <li className="text-sm dark:text-slate-200 flex items-center justify-between"><span>{space.user_id === currentUserId ? "Toi (créateur)" : "Créateur"}</span><span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">créateur</span></li>
-            {members.filter(m=>m.status==="approved").map((m) => (
-              <li key={m.id} className="text-sm dark:text-slate-200 flex items-center justify-between gap-2">
-                <span className="truncate">{m.profiles?.email || m.user_id}{m.user_id === currentUserId ? " (toi)" : ""}</span>
-                {canManage && m.user_id !== space.user_id && <button onClick={()=>removeMember(m.user_id)} className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 shrink-0">Renvoyer</button>}
-              </li>
-            ))}
-            {members.filter(m=>m.status==="pending").length > 0 && <li className="text-xs text-amber-700 dark:text-amber-300 pt-1">{members.filter(m=>m.status==="pending").length} demande(s) en attente (notifications).</li>}
-          </ul>
-        </div>
-        {canManage && (
+      {isOwner && (
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+            <h3 className="font-semibold dark:text-white">Membres de l&apos;espace</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Un membre peut être renvoyé.</p>
+            <ul className="mt-3 space-y-2">
+              <li className="text-sm dark:text-slate-200 flex items-center justify-between"><span>Toi (créateur)</span><span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">créateur</span></li>
+              {members.filter(m=>m.status==="approved").map((m) => (
+                <li key={m.id} className="text-sm dark:text-slate-200 flex items-center justify-between gap-2">
+                  <span className="truncate">{m.profiles?.email || m.user_id}{m.user_id === currentUserId ? " (toi)" : ""}</span>
+                  {m.user_id !== space.user_id && <button onClick={()=>removeMember(m.user_id)} className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 shrink-0">Renvoyer</button>}
+                </li>
+              ))}
+              {members.filter(m=>m.status==="pending").length > 0 && <li className="text-xs text-amber-700 dark:text-amber-300 pt-1">{members.filter(m=>m.status==="pending").length} demande(s) en attente (notifications).</li>}
+            </ul>
+          </div>
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
             <h3 className="font-semibold dark:text-white">Gestion de l&apos;espace</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Les membres de l&apos;espace peuvent tout faire comme le créateur.</p>
             <label className="block mt-3 text-sm dark:text-slate-200">Nom de l&apos;espace (modifiable)</label>
             <div className="mt-1 flex gap-2">
               <input value={editingSpaceName} onChange={(e)=>setEditingSpaceName(e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2 text-sm" />
               <button onClick={renameSpace} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Renommer</button>
             </div>
-            {isOwner && (
-              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <label className="block text-sm dark:text-slate-200">Donner le titre de créateur à un membre</label>
-                <div className="mt-1 flex gap-2">
-                  <select value={transferTo} onChange={(e)=>setTransferTo(e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2 text-sm">
-                    <option value="">Choisir un membre…</option>
-                    {members.filter(m=>m.status==="approved" && m.user_id !== space.user_id).map((m)=>(
-                      <option key={m.user_id} value={m.user_id}>{m.profiles?.email || m.user_id}</option>
-                    ))}
-                  </select>
-                  <button onClick={transferCreator} disabled={!transferTo} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50">Transférer</button>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Un seul créateur par espace.</p>
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <label className="block text-sm dark:text-slate-200">Donner le titre de créateur à un membre</label>
+              <div className="mt-1 flex gap-2">
+                <select value={transferTo} onChange={(e)=>setTransferTo(e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2 text-sm">
+                  <option value="">Choisir un membre…</option>
+                  {members.filter(m=>m.status==="approved" && m.user_id !== space.user_id).map((m)=>(
+                    <option key={m.user_id} value={m.user_id}>{m.profiles?.email || m.user_id}</option>
+                  ))}
+                </select>
+                <button onClick={transferCreator} disabled={!transferTo} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 disabled:opacity-50">Transférer</button>
               </div>
-            )}
+              <p className="text-xs text-slate-500 mt-1">Un seul créateur par espace.</p>
+            </div>
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
               <p className="text-sm text-slate-600 dark:text-slate-300">Effacer l&apos;espace supprime ses projets et tâches.</p>
               <button onClick={deleteSpace} className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Effacer l&apos;espace</button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

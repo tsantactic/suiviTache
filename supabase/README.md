@@ -1,0 +1,22 @@
+# Supabase — fichiers à utiliser
+
+Exécuter les scripts dans **Supabase → SQL Editor** (dans l’ordre indiqué selon votre cas).
+
+## Nouvelle installation (base vide)
+1. `schema.sql` — schéma de base (tables, RLS, triggers).
+2. `migration-shared.sql` — partage/projets visibles (si pas déjà inclus dans votre usage).
+3. `migration-kanban.sql` — champs/statuts Kanban.
+4. `migration-etape.sql` — étapes/tâches (si utilisé par l’app).
+5. `migration-notion-done.sql` — statut Notion/done.
+6. `migration-whiteboard.sql` — whiteboard.
+7. `migration-approval-noemail.sql` — **inscription sans email** : approbation admin via notification in-app.
+8. `migration-spaces.sql` — **espaces** (workspaces), accès par espace, et migration des projets existants dans un espace nommé **"Espace"**.
+
+## Base existante (mise à jour vers le flux actuel)
+- Pour le flux **inscription sans email + approbation admin** : exécuter `migration-approval-noemail.sql`.
+- Pour les **espaces** (et récupérer les anciens projets dans "Espace") : exécuter `migration-spaces.sql`.
+
+## Notes
+- Désactiver l’envoi d’email de confirmation : **Supabase Dashboard → Authentication → (Providers/Settings) → Confirm email** = OFF (réglage projet, hors SQL).
+- Si vos anciens projets "semblent perdus", ils sont en base : lancez `migration-spaces.sql` (déplace les projets sans `space_id` vers l’espace **Espace**).
+- Les migrations sont prévues pour être **idempotentes** quand possible (`if not exists`, `create or replace`, etc.), mais lisez-les avant exécution sur une base de production.
