@@ -24,10 +24,15 @@ export function AdminPanel() {
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState("");
   const [users, setUsers] = useState<any[]>([]);
+  const [spaceCounts, setSpaceCounts] = useState<Record<string, number>>({});
 
   const fetchUsers = async () => {
     const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
     if (data) setUsers(data);
+    const { data: spaces } = await supabase.from("spaces").select("user_id");
+    const counts: Record<string, number> = {};
+    (spaces as any[] || []).forEach((s) => { if (s.user_id) counts[s.user_id] = (counts[s.user_id] || 0) + 1; });
+    setSpaceCounts(counts);
   };
 
   useEffect(() => {
@@ -74,6 +79,20 @@ export function AdminPanel() {
     const j = await res.json();
     if (!res.ok) setMessage("Erreur suppression: " + j.error);
     else { setMessage("Utilisateur supprimé"); fetchUsers(); }
+  };
+
+  const toggleActive = async (id: string, currentlyDisabled: boolean) => {
+    const target = users.find((u) => u.id === id);
+    const actionLabel = currentlyDisabled ? "activer" : "désactiver";
+    if (!confirm(`Confirmer : ${actionLabel} cet utilisateur ?`)) return;
+    if (!currentlyDisabled && target?.role === "admin") {
+      const activeAdmins = users.filter((u) => u.role === "admin" && u.approval_status !== "disabled");
+      if (activeAdmins.length <= 1) { setMessage("Impossible : il doit rester au moins un admin actif."); return; }
+    }
+    const res = await fetch(`/api/admin/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ disabled: !currentlyDisabled }) });
+    const j = await res.json();
+    if (!res.ok) setMessage("Erreur: " + j.error);
+    else { setMessage(currentlyDisabled ? "Utilisateur activé" : "Utilisateur désactivé"); fetchUsers(); }
   };
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -140,36 +159,52 @@ export function AdminPanel() {
     } finally { setImporting(false); }
   };
 
-function UserRow({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole: any; onEmail: any; onPassword: any; onDelete: any }) {
+function UserRow({ u, spaceCount, onRole, onEmail, onPassword, onDelete, onToggle }: { u: any; spaceCount: number; onRole: any; onEmail: any; onPassword: any; onDelete: any; onToggle: any }) {
   const [email, setEmail] = useState(u.email);
   const [pwd, setPwd] = useState("");
   useEffect(()=>{ setEmail(u.email); }, [u.email]);
+  const disabled = u.approval_status === "disabled";
   return (
     <tr className="dark:text-slate-200">
-      <td className="px-2 py-2 text-xs">{u.email}<br/><span className={`px-1.5 py-0.5 rounded-full text-[10px] ${u.role==='admin'?'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200':'bg-slate-100 dark:bg-slate-700 dark:text-slate-200'}`}>{u.role}</span></td>
+      <td className="px-2 py-2 text-xs">
+        {u.email}<br/>
+        <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${u.role==='admin'?'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200':'bg-slate-100 dark:bg-slate-700 dark:text-slate-200'}`}>{u.role}</span>
+        {disabled && <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">désactivé</span>}
+      </td>
       <td className="px-2 py-2 text-xs whitespace-nowrap" title={u.created_at ? new Date(u.created_at).toLocaleString("fr-FR") : ""}>{formatExistence(u.created_at)}</td>
+      <td className="px-2 py-2 text-xs text-center">{spaceCount}</td>
       <td className="px-2 py-2"><select value={u.role} onChange={(e) => onRole(u.id, e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded px-1 py-1 text-xs"><option value="user">user</option><option value="admin">admin</option></select></td>
       <td className="px-2 py-2"><div className="flex gap-1"><input value={email} onChange={(e)=>setEmail(e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded px-1 py-1 text-xs w-28" /><button onClick={()=>onEmail(u.id, email)} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">OK</button></div></td>
       <td className="px-2 py-2"><div className="flex gap-1"><input type="password" placeholder="••••" value={pwd} onChange={(e)=>setPwd(e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white placeholder:text-slate-400 rounded px-1 py-1 text-xs w-24" /><button onClick={()=>{onPassword(u.id,pwd); setPwd("");}} className="px-2 py-1 bg-slate-900 dark:bg-slate-700 text-white rounded text-xs hover:bg-slate-800">OK</button></div></td>
-      <td className="px-2 py-2"><button onClick={()=>onDelete(u.id)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Supprimer</button></td>
+      <td className="px-2 py-2">
+        <div className="flex flex-col gap-1">
+          <button onClick={()=>onToggle(u.id, disabled)} className={`px-2 py-1 rounded text-xs text-white ${disabled ? "bg-green-600 hover:bg-green-700" : "bg-amber-600 hover:bg-amber-700"}`}>{disabled ? "Activer" : "Désactiver"}</button>
+          <button onClick={()=>onDelete(u.id)} className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700">Supprimer</button>
+        </div>
+      </td>
     </tr>
   );
 }
 
-function MobileUserCard({ u, onRole, onEmail, onPassword, onDelete }: { u: any; onRole: any; onEmail: any; onPassword: any; onDelete: any }) {
+function MobileUserCard({ u, spaceCount, onRole, onEmail, onPassword, onDelete, onToggle }: { u: any; spaceCount: number; onRole: any; onEmail: any; onPassword: any; onDelete: any; onToggle: any }) {
   const [email, setEmail] = useState(u.email);
   const [pwd, setPwd] = useState("");
   useEffect(()=>{ setEmail(u.email); }, [u.email]);
+  const disabled = u.approval_status === "disabled";
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm font-medium dark:text-white break-all">{u.email}</p>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ${u.role==='admin'?'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200':'bg-slate-100 dark:bg-slate-700 dark:text-slate-200'}`}>{u.role}</span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.role==='admin'?'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200':'bg-slate-100 dark:bg-slate-700 dark:text-slate-200'}`}>{u.role}</span>
+          {disabled && <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">désactivé</span>}
+        </div>
       </div>
-      <p className="text-xs text-slate-500 dark:text-slate-400">Existence dans l&apos;app : <b className="text-slate-700 dark:text-slate-200">{formatExistence(u.created_at)}</b>{u.created_at ? ` (depuis le ${new Date(u.created_at).toLocaleDateString("fr-FR")})` : ""}</p>
-      <div className="flex gap-2">
-        <select value={u.role} onChange={(e) => onRole(u.id, e.target.value)} className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2.5 text-sm"><option value="user">user</option><option value="admin">admin</option></select>
-        <button onClick={()=>onDelete(u.id)} className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Suppr.</button>
+      <p className="text-xs text-slate-500 dark:text-slate-400">Existence : <b className="text-slate-700 dark:text-slate-200">{formatExistence(u.created_at)}</b>{u.created_at ? ` (depuis le ${new Date(u.created_at).toLocaleDateString("fr-FR")})` : ""} · Espaces : <b className="text-slate-700 dark:text-slate-200">{spaceCount}</b></p>
+      <div className="grid grid-cols-2 gap-2">
+        <select value={u.role} onChange={(e) => onRole(u.id, e.target.value)} className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white rounded-lg px-3 py-2.5 text-sm"><option value="user">user</option><option value="admin">admin</option></select>
+        <button onClick={()=>onToggle(u.id, disabled)} className={`px-3 py-2 text-white rounded-lg text-sm ${disabled ? "bg-green-600 hover:bg-green-700" : "bg-amber-600 hover:bg-amber-700"}`}>{disabled ? "Activer" : "Désactiver"}</button>
+        <button onClick={()=>onDelete(u.id)} className="col-span-2 px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Supprimer</button>
       </div>
       <div className="space-y-2">
         <div className="flex gap-2">
@@ -220,16 +255,16 @@ function MobileUserCard({ u, onRole, onEmail, onPassword, onDelete }: { u: any; 
 
           <div className="bg-slate-100 dark:bg-slate-800 p-4 sm:p-6 rounded-xl border border-slate-200 dark:border-slate-700">
             <h3 className="font-semibold dark:text-white">Gestion des utilisateurs</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Admin peut modifier email, mot de passe, rôle et supprimer un utilisateur. Il doit toujours rester au moins un admin : impossible de rétrograder ou supprimer le dernier admin.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">Admin peut modifier email, mot de passe, rôle, désactiver/activer et supprimer un utilisateur. Il doit toujours rester au moins un admin actif.</p>
             {/* Desktop table */}
             <div className="mt-4 hidden lg:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-900">
-                  <tr className="text-left text-xs text-slate-600 dark:text-slate-300"><th className="px-2 py-2">Email</th><th className="px-2 py-2">Existence</th><th className="px-2 py-2">Rôle</th><th className="px-2 py-2">Nouvel email</th><th className="px-2 py-2">Nouveau mdp</th><th className="px-2 py-2">Actions</th></tr>
+                  <tr className="text-left text-xs text-slate-600 dark:text-slate-300"><th className="px-2 py-2">Email</th><th className="px-2 py-2">Existence</th><th className="px-2 py-2">Espaces</th><th className="px-2 py-2">Rôle</th><th className="px-2 py-2">Nouvel email</th><th className="px-2 py-2">Nouveau mdp</th><th className="px-2 py-2">Accès / Actions</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {users.map((u) => (
-                    <UserRow key={u.id} u={u} onRole={updateRole} onEmail={updateEmail} onPassword={updatePassword} onDelete={deleteUser} />
+                    <UserRow key={u.id} u={u} spaceCount={spaceCounts[u.id] || 0} onRole={updateRole} onEmail={updateEmail} onPassword={updatePassword} onDelete={deleteUser} onToggle={toggleActive} />
                   ))}
                 </tbody>
               </table>
@@ -239,7 +274,7 @@ function MobileUserCard({ u, onRole, onEmail, onPassword, onDelete }: { u: any; 
             <div className="mt-4 lg:hidden space-y-3">
               {users.length===0 ? <p className="text-sm text-slate-500 dark:text-slate-400">Aucun utilisateur.</p> :
               users.map((u) => (
-                <MobileUserCard key={u.id} u={u} onRole={updateRole} onEmail={updateEmail} onPassword={updatePassword} onDelete={deleteUser} />
+                <MobileUserCard key={u.id} u={u} spaceCount={spaceCounts[u.id] || 0} onRole={updateRole} onEmail={updateEmail} onPassword={updatePassword} onDelete={deleteUser} onToggle={toggleActive} />
               ))}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">Nécessite <code className="bg-slate-200 dark:bg-slate-700 dark:text-slate-200 px-1 py-0.5 rounded text-[11px]">SUPABASE_SERVICE_ROLE_KEY</code> dans Vercel Env (sinon 403). Ajoutez-la puis Redeploy.</p>

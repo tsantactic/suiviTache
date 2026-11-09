@@ -14,12 +14,12 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient();
   const redirectTo = process.env.NEXT_PUBLIC_SITE_URL || "https://suivitache.vercel.app";
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: { role } });
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: { role, invited: true } });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Assure le profil avec le bon rôle
+  // Invité par admin : profil approuvé (pas de notification d'inscription)
   if (data.user) {
-    await admin.from("profiles").upsert({ id: data.user.id, email, role });
+    await admin.from("profiles").upsert({ id: data.user.id, email, role, is_approved: true, approval_status: "approved", email_verified: true });
   }
 
   return NextResponse.json({ ok: true, message: `Invitation envoyée à ${email}` });

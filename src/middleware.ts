@@ -28,7 +28,20 @@ export async function middleware(request: NextRequest) {
   if (isProtected && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
+  if (isProtected && user) {
+    const { data: profile } = await supabase.from("profiles").select("is_approved, approval_status").eq("id", user.id).single();
+    if (profile && profile.is_approved === false) {
+      await supabase.auth.signOut();
+      const url = new URL("/login", request.url);
+      url.searchParams.set("reason", profile.approval_status === "disabled" ? "disabled" : "pending");
+      return NextResponse.redirect(url);
+    }
+  }
   if (isAuthRoute && user) {
+    // Laisse passer /login si raison explicite (affichage message après désactivation)
+    if (request.nextUrl.pathname.startsWith("/login") && request.nextUrl.searchParams.get("reason")) {
+      return response;
+    }
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

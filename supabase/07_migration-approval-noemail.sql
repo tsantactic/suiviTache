@@ -41,36 +41,42 @@ create policy "notifications update auth" on public.notifications for update usi
 
 create index if not exists idx_notifications_unread on public.notifications(is_read, recipient_role);
 
--- À l'inscription : profil en attente (non-admin) + notification aux admins
+-- À l'inscription : profil en attente (non-admin) + notification aux admins.
+-- Si l'utilisateur est invité par l'admin (metadata invited=true), pas de notification et compte approuvé.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $func$
 declare
   v_role text;
   v_approved boolean;
   v_status text;
+  v_invited boolean;
 begin
-  v_role := case when new.email in ('admin@suivitache.com') then 'admin' else 'user' end;
-  v_approved := (v_role = 'admin');
-  v_status := case when v_role = 'admin' then 'approved' else 'pending' end;
+  v_invited := coalesce((new.raw_user_meta_data->>'invited')::boolean, false);
+  v_role := case when new.email in ('admin@suivitache.com') then 'admin' else coalesce(new.raw_user_meta_data->>'role', 'user') end;
+  v_approved := (v_role = 'admin' or v_invited);
+  v_status := case when v_approved then 'approved' else 'pending' end;
 
   insert into public.profiles (id, email, role, is_approved, email_verified, approval_status)
   values (new.id, new.email, v_role, v_approved, true, v_status)
-  on conflict (id) do update set role = excluded.role;
+  on conflict (id) do update set role = excluded.role, is_approved = excluded.is_approved, approval_status = excluded.approval_status;
 
-  if v_role <> 'admin' then
-    insert into public.notifications (type, recipient_role, recipient_user_id, related_user_id, related_email, title, message, status, is_read)
-    select 'approval_request', 'admin', p.id, new.id, new.email,
-      'Nouvelle inscription à valider',
-      'Un nouvel utilisateur (' || new.email || ') attend votre approbation pour accéder à SuiviTâche.',
-      'pending', false
-    from public.profiles p where p.role = 'admin' and (p.is_approved is null or p.is_approved = true);
-
-    if not exists (select 1 from public.profiles p where p.role = 'admin' and (p.is_approved is null or p.is_approved = true)) then
-      insert into public.notifications (type, recipient_role, related_user_id, related_email, title, message, status, is_read)
-      values ('approval_request', 'admin', new.id, new.email,
+  -- Notification admin uniquement pour une auto-inscription (pas une invitation)
+  if v_role <> 'admin' and not v_invited then
+    if not exists (select 1 from public.notifications n where n.type = 'approval_request' and n.related_user_id = new.id and n.status = 'pending') then
+      insert into public.notifications (type, recipient_role, recipient_user_id, related_user_id, related_email, title, message, status, is_read)
+      select 'approval_request', 'admin', p.id, new.id, new.email,
         'Nouvelle inscription à valider',
         'Un nouvel utilisateur (' || new.email || ') attend votre approbation pour accéder à SuiviTâche.',
-        'pending', false);
+        'pending', false
+      from public.profiles p where p.role = 'admin' and (p.is_approved is null or p.is_approved = true);
+
+      if not exists (select 1 from public.profiles p where p.role = 'admin' and (p.is_approved is null or p.is_approved = true)) then
+        insert into public.notifications (type, recipient_role, related_user_id, related_email, title, message, status, is_read)
+        values ('approval_request', 'admin', new.id, new.email,
+          'Nouvelle inscription à valider',
+          'Un nouvel utilisateur (' || new.email || ') attend votre approbation pour accéder à SuiviTâche.',
+          'pending', false);
+      end if;
     end if;
   end if;
   return new;

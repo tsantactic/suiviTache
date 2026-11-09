@@ -12,9 +12,29 @@ async function isAdmin() {
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   if (!await isAdmin()) return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
-  const { email, password, role } = await req.json();
+  const body = await req.json();
+  const { email, password, role, disabled } = body as { email?: string; password?: string; role?: string; disabled?: boolean };
   const admin = createAdminClient();
   const id = params.id;
+
+  if (typeof disabled === "boolean") {
+    const { data: target } = await admin.from("profiles").select("role, approval_status").eq("id", id).single();
+    if (disabled) {
+      // Ne pas désactiver le dernier admin actif
+      if (target?.role === "admin") {
+        const { data: admins } = await admin.from("profiles").select("id, approval_status").eq("role", "admin");
+        const activeAdmins = (admins || []).filter((a: any) => a.approval_status !== "disabled");
+        if (activeAdmins.length <= 1 && activeAdmins.some((a: any) => a.id === id)) {
+          return NextResponse.json({ error: "Impossible : il doit rester au moins un admin actif." }, { status: 400 });
+        }
+      }
+      const { error } = await admin.from("profiles").update({ is_approved: false, approval_status: "disabled" }).eq("id", id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    } else {
+      const { error } = await admin.from("profiles").update({ is_approved: true, approval_status: "approved" }).eq("id", id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+  }
 
   if (email) {
     const { error } = await admin.auth.admin.updateUserById(id, { email });

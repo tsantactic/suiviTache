@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -10,7 +10,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason === "disabled") setError("Votre compte a été désactivé par un administrateur. Contactez un admin pour réactiver votre accès.");
+    else if (reason === "pending") setError("Votre compte n'est pas encore approuvé.");
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +31,9 @@ export default function LoginPage() {
         const { data: profile } = await supabase.from("profiles").select("is_approved, approval_status").eq("id", uid).single();
         if (profile && profile.is_approved === false) {
           await supabase.auth.signOut();
-          setError(profile.approval_status === "rejected" ? "Votre inscription a été refusée par un administrateur." : "Votre compte n'est pas encore approuvé. Un administrateur doit valider votre inscription via notification. Merci de patienter.");
+          if (profile.approval_status === "rejected") setError("Votre inscription a été refusée par un administrateur.");
+          else if (profile.approval_status === "disabled") setError("Votre compte a été désactivé par un administrateur. Contactez un admin pour réactiver votre accès.");
+          else setError("Votre compte n'est pas encore approuvé. Un administrateur doit valider votre inscription via notification. Merci de patienter.");
           setLoading(false);
           return;
         }

@@ -11,10 +11,12 @@ Exécuter les scripts dans **Supabase → SQL Editor** dans l’ordre indiqué.
 6. `06_migration-whiteboard.sql` — whiteboard.
 7. `07_migration-approval-noemail.sql` — **inscription sans email** : approbation admin via notification in-app.
 8. `08_migration-spaces.sql` — **espaces** (workspaces), accès par espace, et migration des projets existants dans un espace nommé **"Espace"**.
+9. `09_migration-user-disable.sql` — désactivation/réactivation d'utilisateurs par l'admin.
 
 ## Base existante (mise à jour vers le flux actuel)
 - Pour le flux **inscription sans email + approbation admin** : exécuter `07_migration-approval-noemail.sql`.
 - Pour les **espaces** (et récupérer les anciens projets dans "Espace") : exécuter `08_migration-spaces.sql`.
+- Pour la **désactivation/activation** d'utilisateurs : exécuter `09_migration-user-disable.sql`.
 
 ## Notes
 - Désactiver l’envoi d’email de confirmation : **Supabase Dashboard → Authentication → (Providers/Settings) → Confirm email** = OFF (réglage projet, hors SQL).
