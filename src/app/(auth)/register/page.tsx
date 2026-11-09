@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -12,21 +11,19 @@ export default function RegisterPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(""); setSuccess("");
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) setError(error.message);
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) setError(j.error || "Erreur lors de l'inscription");
     else {
-      // Notifier les admins (flux sans email) via API
-      await fetch("/api/auth/register-notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: data.user?.id, email }),
-      }).catch(() => {});
       setSuccess("Compte créé !");
       setShowPopup(true);
     }
